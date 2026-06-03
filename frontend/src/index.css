@@ -72,3 +72,21 @@
   .scrollbar-none::-webkit-scrollbar { display: none; }
   .focus-brand { outline: 2px solid var(--ring-brand); outline-offset: 2px; }
 }
+
+/* Logo mark block base opacities */
+.logo-block-0 { --logo-base-op: 1.0;  opacity: var(--logo-base-op); }
+.logo-block-1 { --logo-base-op: 0.65; opacity: var(--logo-base-op); }
+.logo-block-2 { --logo-base-op: 0.65; opacity: var(--logo-base-op); }
+.logo-block-3 { --logo-base-op: 0.35; opacity: var(--logo-base-op); }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes logo-block-pulse {
+    0%, 100% { opacity: var(--logo-base-op); }
+    50%      { opacity: 1; }
+  }
+
+  .logo-animating .logo-block-0 { animation: logo-block-pulse 0.5s ease-in-out 0ms; }
+  .logo-animating .logo-block-1 { animation: logo-block-pulse 0.5s ease-in-out 150ms; }
+  .logo-animating .logo-block-2 { animation: logo-block-pulse 0.5s ease-in-out 300ms; }
+  .logo-animating .logo-block-3 { animation: logo-block-pulse 0.5s ease-in-out 450ms; }
+}

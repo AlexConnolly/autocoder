@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import type { Board } from '../../types';
 
@@ -23,12 +24,48 @@ function PlusIcon() {
 }
 
 function LogoMark() {
+  const [animating, setAnimating] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    function scheduleNext() {
+      const delay = 20000 + Math.random() * 25000;
+      timerRef.current = setTimeout(() => {
+        setAnimating(true);
+        timerRef.current = setTimeout(() => {
+          setAnimating(false);
+          scheduleNext();
+        }, 1100);
+      }, delay);
+    }
+    scheduleNext();
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="1" width="6" height="6" rx="1.5" fill="#6366f1" />
-      <rect x="9" y="1" width="6" height="6" rx="1.5" fill="#6366f1" opacity="0.6" />
-      <rect x="1" y="9" width="6" height="6" rx="1.5" fill="#6366f1" opacity="0.6" />
-      <rect x="9" y="9" width="6" height="6" rx="1.5" fill="#6366f1" opacity="0.3" />
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={animating ? 'logo-animating' : undefined}
+    >
+      <defs>
+        <linearGradient id="logo-grad" x1="0" y1="0" x2="18" y2="18" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#818cf8" />
+          <stop offset="100%" stopColor="#4338ca" />
+        </linearGradient>
+      </defs>
+      <rect className="logo-block logo-block-0" x="1" y="1" width="7" height="7" rx="1.5" fill="url(#logo-grad)" />
+      <path d="M 3,3.5 L 1.75,4.5 L 3,5.5" stroke="rgba(255,255,255,0.65)" strokeWidth="0.75" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M 3.8,5.8 L 4.8,3.2" stroke="rgba(255,255,255,0.65)" strokeWidth="0.75" strokeLinecap="round" fill="none" />
+      <path d="M 5.5,3.5 L 6.75,4.5 L 5.5,5.5" stroke="rgba(255,255,255,0.65)" strokeWidth="0.75" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <rect className="logo-block logo-block-1" x="10" y="1" width="7" height="7" rx="1.5" fill="url(#logo-grad)" />
+      <rect className="logo-block logo-block-2" x="1" y="10" width="7" height="7" rx="1.5" fill="url(#logo-grad)" />
+      <rect className="logo-block logo-block-3" x="10" y="10" width="7" height="7" rx="1.5" fill="url(#logo-grad)" />
     </svg>
   );
 }
