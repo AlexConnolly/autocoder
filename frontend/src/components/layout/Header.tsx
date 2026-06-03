@@ -35,17 +35,17 @@ function LogoMark() {
 
 export default function Header({ board, onNewTask }: Props) {
   return (
-    <header className="h-12 flex items-center gap-4 px-4 border-b border-[#2a2a30] bg-[#0f0f10] flex-none z-10 shadow-sm">
+    <header className="h-12 flex items-center gap-4 px-4 border-b border-border bg-[var(--color-bg)] flex-none z-10 shadow-sm">
       {/* Brand */}
       <div className="flex items-center gap-2 select-none">
         <LogoMark />
-        <span className="text-zinc-100 text-sm font-semibold tracking-tight">autocoder</span>
+        <span className="text-zinc-900 dark:text-zinc-100 text-sm font-semibold tracking-tight">autocoder</span>
       </div>
 
-      <div className="w-px h-4 bg-zinc-800" />
+      <div className="w-px h-4 bg-zinc-300 dark:bg-zinc-800" />
 
       {/* Board name */}
-      <span className="text-base font-medium text-zinc-200">{board.name}</span>
+      <span className="text-base font-medium text-zinc-800 dark:text-zinc-200">{board.name}</span>
 
       <div className="flex-1" />
 
@@ -61,7 +61,7 @@ export default function Header({ board, onNewTask }: Props) {
 
       <Link
         to="/settings"
-        className="p-1.5 text-zinc-400 hover:text-zinc-200 transition-colors rounded"
+        className="p-1.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors rounded"
         title="Settings"
       >
         <SettingsIcon />

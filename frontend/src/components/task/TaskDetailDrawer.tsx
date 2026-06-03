@@ -13,12 +13,21 @@ interface Props {
   onClose: () => void;
   onAnswer: (taskId: string, answer: string) => void;
   onApprove: (taskId: string) => void;
+  onDelete: (taskId: string) => void;
 }
 
 function CloseIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 4h12M5 4V2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 .5.5V4M13 4l-.9 9.1a1 1 0 0 1-1 .9H4.9a1 1 0 0 1-1-.9L3 4" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -31,9 +40,14 @@ function LightningIcon() {
   );
 }
 
-export default function TaskDetailDrawer({ task, board, liveOutput, contextEntries, onClose, onAnswer, onApprove }: Props) {
+export default function TaskDetailDrawer({ task, board, liveOutput, contextEntries, onClose, onAnswer, onApprove, onDelete }: Props) {
   const isOpen = task !== null;
   const column = board.columns.find(c => c.id === task?.currentColumnId);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  useEffect(() => {
+    if (!task) setConfirmingDelete(false);
+  }, [task]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -82,10 +96,45 @@ export default function TaskDetailDrawer({ task, board, liveOutput, contextEntri
                   )}
                 </div>
               </div>
+              <div className="flex items-center gap-1 mt-0.5 flex-none">
+                {!confirmingDelete ? (
+                  <button
+                    onClick={() => setConfirmingDelete(true)}
+                    className="text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded p-1 transition-colors"
+                    aria-label="Delete task"
+                  >
+                    <TrashIcon />
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-400">Delete task?</span>
+                    <button
+                      onClick={() => { onDelete(task.id); onClose(); }}
+                      className="px-2 py-1 text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded transition-colors font-medium"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => setConfirmingDelete(false)}
+                      className="px-2 py-1 text-xs text-zinc-500 hover:text-zinc-300 rounded transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
+
+              {/* ── Live output (shown first while running) ──────────────── */}
+              {liveOutput && (
+                <section>
+                  <SectionLabel>Live output</SectionLabel>
+                  <LiveOutputPanel output={liveOutput} />
+                </section>
+              )}
 
               {/* ── Approve panel (PendingApproval state) ───────────────── */}
               {task.status === 'PendingApproval' && (
@@ -107,14 +156,6 @@ export default function TaskDetailDrawer({ task, board, liveOutput, contextEntri
                   question={task.pendingQuestion}
                   onSubmit={(answer) => onAnswer(task.id, answer)}
                 />
-              )}
-
-              {/* ── Live output ─────────────────────────────────────────── */}
-              {liveOutput && (
-                <section>
-                  <SectionLabel>Live output</SectionLabel>
-                  <LiveOutputPanel output={liveOutput} />
-                </section>
               )}
 
               {/* ── History ─────────────────────────────────────────────── */}

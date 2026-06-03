@@ -29,7 +29,7 @@ function BoardIcon() {
 
 export default function BottomNav({ active, attentionCount, onChange }: Props) {
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-[#18181b]/95 backdrop-blur-sm border-t border-[#2a2a30] shadow-[0_-1px_0_#2a2a30] flex items-center z-20">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-surface/95 backdrop-blur-sm border-t border-border shadow-[0_-1px_0_rgb(var(--color-border))] flex items-center z-20">
       <TabButton
         label="Focus"
         icon={<FocusIcon />}
@@ -53,7 +53,7 @@ function TabButton({ label, icon, badge, active, onClick }: { label: string; ico
       onClick={onClick}
       className={cn(
         'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors',
-        active ? 'text-brand-400' : 'text-zinc-600 hover:text-zinc-400'
+        active ? 'text-brand-400' : 'text-zinc-500 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400'
       )}
     >
       <div className="relative">

@@ -1,0 +1,15 @@
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\bin\Debug\net7.0\Autocoder.Orchestrator.deps.json
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\bin\Debug\net7.0\Autocoder.Orchestrator.dll
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\bin\Debug\net7.0\Autocoder.Orchestrator.pdb
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\bin\Debug\net7.0\Autocoder.Core.dll
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\bin\Debug\net7.0\Autocoder.Core.pdb
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\Autocoder.Orchestrator.csproj.AssemblyReference.cache
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\Autocoder.Orchestrator.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\Autocoder.Orchestrator.AssemblyInfoInputs.cache
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\Autocoder.Orchestrator.AssemblyInfo.cs
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\Autocoder.Orchestrator.csproj.CoreCompileInputs.cache
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\Autocoder.Orchestrator.csproj.CopyComplete
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\Autocoder.Orchestrator.dll
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\refint\Autocoder.Orchestrator.dll
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\Autocoder.Orchestrator.pdb
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Orchestrator\obj\Debug\net7.0\ref\Autocoder.Orchestrator.dll

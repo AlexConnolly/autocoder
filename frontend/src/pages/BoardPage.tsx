@@ -19,7 +19,7 @@ export default function BoardPage() {
     board, tasks, liveOutputs, contextEntries, selectedTaskId, isCreateModalOpen,
     isLoading, apiError,
     selectTask, openCreateModal, closeCreateModal,
-    handleAnswer, handleApprove, handleRetry, handleCreateTask,
+    handleAnswer, handleApprove, handleRetry, handleDeleteTask, handleCreateTask,
   } = useBoard();
 
   const [mobileTab, setMobileTab] = useState<MobileTab>('focus');
@@ -131,6 +131,7 @@ export default function BoardPage() {
         onClose={() => selectTask(null)}
         onAnswer={handleAnswer}
         onApprove={handleApprove}
+        onDelete={handleDeleteTask}
       />
 
       <CreateTaskModal

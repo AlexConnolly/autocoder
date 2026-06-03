@@ -1,0 +1,12 @@
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\bin\Debug\net7.0\Autocoder.Core.deps.json
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\bin\Debug\net7.0\Autocoder.Core.dll
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\bin\Debug\net7.0\Autocoder.Core.pdb
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\Autocoder.Core.csproj.AssemblyReference.cache
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\Autocoder.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\Autocoder.Core.AssemblyInfoInputs.cache
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\Autocoder.Core.AssemblyInfo.cs
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\Autocoder.Core.csproj.CoreCompileInputs.cache
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\Autocoder.Core.dll
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\refint\Autocoder.Core.dll
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\Autocoder.Core.pdb
+C:\Users\alexc\Documents\GitHub\autocoder\src\Autocoder.Core\obj\Debug\net7.0\ref\Autocoder.Core.dll

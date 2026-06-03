@@ -19,13 +19,9 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 });
 builder.Services.AddSignalR();
 
-var allowedOrigins = builder.Configuration
-    .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? new[] { "http://localhost:5173" };
-
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins(allowedOrigins)
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials()));
@@ -33,6 +29,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<PromptBuilder>();
 builder.Services.AddSingleton<IAgentRunner, ClaudeCliRunner>();
 builder.Services.AddSingleton<IGitService, GitService>();
+builder.Services.AddSingleton<IRunningTaskRegistry, RunningTaskRegistry>();
 builder.Services.AddScoped<IOrchestrator, OrchestratorService>();
 
 builder.Services.AddHostedService<BackgroundOrchestratorService>();
