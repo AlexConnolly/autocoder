@@ -1,7 +1,15 @@
 export type WorkTaskStatus = 'Waiting' | 'Running' | 'PendingApproval' | 'Asking' | 'Done' | 'Error';
 export type ColumnType = 'Input' | 'Agent';
 export type TransitionAction = 'Forward' | 'Backward' | 'Ask';
-export type ContextEntryKind = 'AgentOutput' | 'UserAnswer' | 'SystemNote';
+export type ContextEntryKind = 'AgentOutput' | 'UserAnswer' | 'SystemNote' | 'ShellOutput';
+
+export interface ColumnShellCommand {
+  id: string;
+  columnId: string;
+  command: string;
+  workingDirectory?: string;
+  position: number;
+}
 
 export interface WorkTask {
   id: string;
@@ -28,8 +36,10 @@ export interface Column {
   outputSchemaHint?: string;
   backwardTargetColumnId?: string;
   autoForward: boolean;
+  agentEnabled: boolean;
   timeoutSeconds: number;
   maxAgentTurns: number;
+  shellCommands?: ColumnShellCommand[];
 }
 
 export interface Board {

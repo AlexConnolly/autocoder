@@ -1,4 +1,4 @@
-import type { Board, BoardRepository, Column, ContextEntry, WorkTask } from '../types';
+import type { Board, BoardRepository, Column, ColumnShellCommand, ContextEntry, WorkTask } from '../types';
 
 const BASE = '/api';
 
@@ -68,13 +68,29 @@ export const deleteTask = (taskId: string) =>
 export const updateBoard = (boardId: string, name: string, globalInstructions?: string) =>
   put<Board>(`/boards/${boardId}`, { name, globalInstructions });
 
-export const updateColumn = (
-  columnId: string,
-  patch: { instructions?: string; outputSchemaHint?: string; autoForward: boolean; backwardTargetColumnId?: string; timeoutSeconds: number; maxAgentTurns: number }
-) => put<Column>(`/columns/${columnId}`, patch);
+export const createColumn = (boardId: string, name: string, type: 'Input' | 'Agent') =>
+  post<Column>(`/boards/${boardId}/columns`, { name, type });
+
+export const updateColumn = (columnId: string, patch: {
+  name: string; instructions?: string; outputSchemaHint?: string;
+  autoForward: boolean; agentEnabled: boolean;
+  backwardTargetColumnId?: string; timeoutSeconds: number; maxAgentTurns: number;
+}) => put<Column>(`/columns/${columnId}`, patch);
+
+export const deleteColumn = (columnId: string) =>
+  del(`/columns/${columnId}`);
 
 export const reorderColumns = (boardId: string, ids: string[]) =>
   put<void>(`/boards/${boardId}/columns/reorder`, { ids });
+
+export const addShellCommand = (columnId: string, command: string, workingDirectory?: string) =>
+  post<ColumnShellCommand>(`/columns/${columnId}/shell-commands`, { command, workingDirectory });
+
+export const updateShellCommand = (cmdId: string, command: string, workingDirectory?: string) =>
+  put<ColumnShellCommand>(`/shell-commands/${cmdId}`, { command, workingDirectory });
+
+export const deleteShellCommand = (cmdId: string) =>
+  del(`/shell-commands/${cmdId}`);
 
 export const fetchRepositories = (boardId: string) =>
   get<BoardRepository[]>(`/boards/${boardId}/repositories`);

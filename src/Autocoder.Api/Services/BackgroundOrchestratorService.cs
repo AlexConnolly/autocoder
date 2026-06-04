@@ -65,7 +65,7 @@ public class BackgroundOrchestratorService : BackgroundService
         var eligible = waitingTasks.Where(t =>
         {
             var col = t.Board.Columns.FirstOrDefault(c => c.Id == t.CurrentColumnId);
-            return col?.Type == ColumnType.Agent;
+            return col?.Type == ColumnType.Agent && !_registry.IsRegistered(t.Id);
         }).ToList();
 
         foreach (var task in eligible)

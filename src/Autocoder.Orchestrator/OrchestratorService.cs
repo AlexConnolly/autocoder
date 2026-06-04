@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text.Json;
 using Autocoder.Core.Data;
 using Autocoder.Core.Enums;
 using Autocoder.Core.Interfaces;
@@ -38,6 +40,7 @@ public class OrchestratorService : IOrchestrator
         var task = await _db.WorkTasks
             .Include(t => t.Board)
                 .ThenInclude(b => b.Columns)
+                    .ThenInclude(c => c.ShellCommands)
             .Include(t => t.Board)
                 .ThenInclude(b => b.Repositories)
             .Include(t => t.ContextEntries.OrderBy(e => e.CreatedAt))
@@ -54,40 +57,70 @@ public class OrchestratorService : IOrchestrator
         if (column.Type != ColumnType.Agent)
             throw new InvalidOperationException($"Column '{column.Name}' is not an agent column.");
 
+        if (!column.AgentEnabled && column.ShellCommands.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"Column '{column.Name}' has AgentEnabled=false but no shell commands configured.");
+        }
+
         task.Status = WorkTaskStatus.Running;
         task.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         var orderedColumns = task.Board.Columns.OrderBy(c => c.Position).ToList();
 
-        // ── Phase 1: Worker ──────────────────────────────────────────────────
-        var workerPrompt = _promptBuilder.Build(task, column, orderedColumns);
-
-        AgentResult workerResult;
-        using var workerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        if (column.TimeoutSeconds > 0)
-            workerCts.CancelAfter(TimeSpan.FromSeconds(column.TimeoutSeconds));
-
-        try
+        // Pre-create branch/worktree on first run (before any agent commits)
+        if (task.BranchName is null && task.Board.Repositories.Count > 0)
         {
-            workerResult = await _agentRunner.RunAsync(workerPrompt, workerCts.Token);
-        }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
-        {
-            await SetErrorAsync(task, $"Worker agent timed out after {column.TimeoutSeconds} seconds.", ct);
-            return;
+            task.BranchName = GenerateBranchName(task.Title);
+            await _gitService.SetupWorktreeAsync(task, ct);
+            task.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
         }
 
-        if (workerResult.TimedOut)
+        // ── Phase 1: Worker (optional) ───────────────────────────────────────
+        string workerOutput = string.Empty;
+
+        if (column.AgentEnabled)
         {
-            await SetErrorAsync(task, $"Worker agent timed out after {column.TimeoutSeconds} seconds.", ct);
-            return;
+            var workerPrompt = _promptBuilder.Build(task, column, orderedColumns);
+
+            AgentResult workerResult;
+            using var workerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            if (column.TimeoutSeconds > 0)
+                workerCts.CancelAfter(TimeSpan.FromSeconds(column.TimeoutSeconds));
+
+            try
+            {
+                workerResult = await _agentRunner.RunAsync(workerPrompt, workerCts.Token);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                await SetErrorAsync(task, $"Worker agent timed out after {column.TimeoutSeconds} seconds.", ct);
+                return;
+            }
+
+            if (workerResult.TimedOut)
+            {
+                await SetErrorAsync(task, $"Worker agent timed out after {column.TimeoutSeconds} seconds.", ct);
+                return;
+            }
+
+            workerOutput = workerResult.FullOutput;
         }
 
-        var workerOutput = workerResult.FullOutput;
+        // ── Phase 2: Shell commands (optional) ───────────────────────────────
+        string? shellSummary = null;
+        List<ShellCommandResult>? shellResults = null;
 
-        // ── Phase 2: Determiner ──────────────────────────────────────────────
-        var determinerPrompt = _promptBuilder.BuildDeterminer(task, column, workerOutput);
+        if (column.ShellCommands.Count > 0)
+        {
+            shellResults = await RunShellCommandsAsync(task, column, ct);
+            shellSummary = await SummarizeShellResultsAsync(task, column, shellResults, ct);
+        }
+
+        // ── Phase 3: Determiner ──────────────────────────────────────────────
+        var determinerPrompt = _promptBuilder.BuildDeterminer(task, column, workerOutput, shellSummary);
 
         AgentResult determinerResult;
         using var determinerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -117,31 +150,40 @@ public class OrchestratorService : IOrchestrator
 
         var output = determinerResult.StructuredOutput;
 
-        var defaultBranches = task.Board.Repositories.Select(r => r.DefaultBranch).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        defaultBranches.Add("main");
-        defaultBranches.Add("master");
-
-        if (task.BranchName is null
-            && output.TryGetString("branchName", out var branchName)
-            && !string.IsNullOrWhiteSpace(branchName)
-            && !defaultBranches.Contains(branchName))
+        // Save agent output entry (if agent ran)
+        if (column.AgentEnabled)
         {
-            task.BranchName = branchName;
-            await _gitService.SetupWorktreeAsync(task, ct);
+            _db.ContextEntries.Add(new ContextEntry
+            {
+                Id = Guid.NewGuid(),
+                TaskId = task.Id,
+                Kind = ContextEntryKind.AgentOutput,
+                ColumnId = column.Id,
+                ColumnName = column.Name,
+                Content = workerOutput,
+                StructuredData = output.RawJson,
+                Action = output.Action,
+                CreatedAt = DateTime.UtcNow
+            });
         }
 
-        _db.ContextEntries.Add(new ContextEntry
+        // Save shell output entry (if shell commands ran)
+        if (shellResults is not null && shellSummary is not null)
         {
-            Id = Guid.NewGuid(),
-            TaskId = task.Id,
-            Kind = ContextEntryKind.AgentOutput,
-            ColumnId = column.Id,
-            ColumnName = column.Name,
-            Content = workerOutput,
-            StructuredData = output.RawJson,
-            Action = output.Action,
-            CreatedAt = DateTime.UtcNow
-        });
+            _db.ContextEntries.Add(new ContextEntry
+            {
+                Id = Guid.NewGuid(),
+                TaskId = task.Id,
+                Kind = ContextEntryKind.ShellOutput,
+                ColumnId = column.Id,
+                ColumnName = column.Name,
+                Content = shellSummary,
+                StructuredData = JsonSerializer.Serialize(shellResults),
+                // In shell-only columns, store the routing action here so history is complete
+                Action = column.AgentEnabled ? null : output.Action,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
 
         var currentIdx = orderedColumns.FindIndex(c => c.Id == column.Id);
 
@@ -189,12 +231,148 @@ public class OrchestratorService : IOrchestrator
 
         task.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        if (task.Status == WorkTaskStatus.Done && task.BranchName is not null)
+            await TryPushAndMergeAsync(task, column, orderedColumns, ct);
+    }
+
+    private static string GenerateBranchName(string title)
+    {
+        var slug = System.Text.RegularExpressions.Regex.Replace(
+                title.ToLowerInvariant(), @"[^a-z0-9]+", "-")
+            .Trim('-');
+        if (slug.Length > 50) slug = slug[..50].TrimEnd('-');
+        return $"autocoder/{slug}";
+    }
+
+    private async Task<List<ShellCommandResult>> RunShellCommandsAsync(
+        WorkTask task, Column column, CancellationToken ct)
+    {
+        var results = new List<ShellCommandResult>();
+        var baseDir = task.WorktreePath
+            ?? task.Board.Repositories.FirstOrDefault()?.LocalPath
+            ?? Directory.GetCurrentDirectory();
+
+        foreach (var cmd in column.ShellCommands.OrderBy(c => c.Position))
+        {
+            var workDir = cmd.WorkingDirectory is not null
+                ? Path.IsPathRooted(cmd.WorkingDirectory)
+                    ? cmd.WorkingDirectory
+                    : Path.Combine(baseDir, cmd.WorkingDirectory)
+                : baseDir;
+
+            if (!Directory.Exists(workDir))
+            {
+                _logger.LogWarning("Shell command working directory does not exist: {Dir}", workDir);
+                results.Add(new ShellCommandResult(cmd.Command, -1, string.Empty, $"Working directory not found: {workDir}"));
+                continue;
+            }
+
+            var (exe, args) = OperatingSystem.IsWindows()
+                ? ("cmd.exe", $"/c {cmd.Command}")
+                : ("sh", $"-c \"{cmd.Command.Replace("\"", "\\\"")}\"");
+
+            var psi = new ProcessStartInfo(exe, args)
+            {
+                WorkingDirectory = workDir,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            try
+            {
+                using var proc = Process.Start(psi)
+                    ?? throw new InvalidOperationException($"Failed to start process for: {cmd.Command}");
+
+                var stdoutTask = proc.StandardOutput.ReadToEndAsync(ct);
+                var stderrTask = proc.StandardError.ReadToEndAsync(ct);
+                await proc.WaitForExitAsync(ct);
+
+                var stdout = await stdoutTask;
+                var stderr = await stderrTask;
+                results.Add(new ShellCommandResult(cmd.Command, proc.ExitCode, stdout, stderr));
+
+                _logger.LogDebug("Shell [{Col}] $ {Cmd} → exit {Code}", column.Name, cmd.Command, proc.ExitCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Shell command failed to start: {Cmd}", cmd.Command);
+                results.Add(new ShellCommandResult(cmd.Command, -1, string.Empty, ex.Message));
+            }
+        }
+
+        return results;
+    }
+
+    private async Task<string> SummarizeShellResultsAsync(
+        WorkTask task, Column column, List<ShellCommandResult> results, CancellationToken ct)
+    {
+        var prompt = _promptBuilder.BuildSummarizer(task, column, results);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        cts.CancelAfter(TimeSpan.FromSeconds(60));
+        try
+        {
+            var result = await _agentRunner.RunAsync(prompt, cts.Token);
+            return result.FullOutput.Trim();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Shell summarizer failed for task {TaskId}", task.Id);
+            // Fall back to a mechanical summary
+            var passed = results.Count(r => r.ExitCode == 0);
+            var failed = results.Count(r => r.ExitCode != 0);
+            return $"{passed} command(s) passed, {failed} failed.";
+        }
+    }
+
+    private async Task TryPushAndMergeAsync(WorkTask task, Column sourceCol, List<Column> orderedColumns, CancellationToken ct)
+    {
+        bool success;
+        try
+        {
+            success = await _gitService.PushAndMergeAsync(task, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "PushAndMerge threw unexpectedly for task {TaskId}; leaving as Done", task.Id);
+            return;
+        }
+
+        if (success) return;
+
+        var sourceIdx = orderedColumns.FindIndex(c => c.Id == sourceCol.Id);
+        var backTarget = sourceCol.BackwardTargetColumnId.HasValue
+            ? orderedColumns.FirstOrDefault(c => c.Id == sourceCol.BackwardTargetColumnId.Value)
+            : orderedColumns.Take(sourceIdx).LastOrDefault(c => c.Type == ColumnType.Agent);
+
+        if (backTarget is null)
+        {
+            _logger.LogWarning("Merge conflict but no backward target from '{Col}'; leaving as Done", sourceCol.Name);
+            return;
+        }
+
+        _db.ContextEntries.Add(new ContextEntry
+        {
+            Id = Guid.NewGuid(),
+            TaskId = task.Id,
+            Kind = ContextEntryKind.SystemNote,
+            Content = $"Merge conflict detected when merging branch '{task.BranchName}' into main. Please resolve the conflicts and push the branch again.",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        task.CurrentColumnId = backTarget.Id;
+        task.Status = WorkTaskStatus.Waiting;
+        task.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
     }
 
     public async Task ApproveTaskAsync(Guid taskId, CancellationToken ct = default)
     {
         var task = await _db.WorkTasks
             .Include(t => t.Board).ThenInclude(b => b.Columns)
+            .Include(t => t.Board).ThenInclude(b => b.Repositories)
             .FirstOrDefaultAsync(t => t.Id == taskId, ct)
             ?? throw new InvalidOperationException($"Task {taskId} not found.");
 
@@ -202,13 +380,22 @@ public class OrchestratorService : IOrchestrator
             throw new InvalidOperationException(
                 $"Task is not pending approval (status: {task.Status}).");
 
-        var current = task.Board.Columns.First(c => c.Id == task.CurrentColumnId);
+        var orderedCols = task.Board.Columns.OrderBy(c => c.Position).ToList();
+        var current = orderedCols.First(c => c.Id == task.CurrentColumnId);
         task.Status = current.Type == ColumnType.Input
             ? WorkTaskStatus.Done
             : WorkTaskStatus.Waiting;
 
         task.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        if (task.Status == WorkTaskStatus.Done && task.BranchName is not null)
+        {
+            var currentIdx = orderedCols.FindIndex(c => c.Id == task.CurrentColumnId);
+            var lastAgentCol = orderedCols.Take(currentIdx).LastOrDefault(c => c.Type == ColumnType.Agent);
+            if (lastAgentCol is not null)
+                await TryPushAndMergeAsync(task, lastAgentCol, orderedCols, ct);
+        }
     }
 
     public async Task SubmitAnswerAsync(Guid taskId, string answer, CancellationToken ct = default)
@@ -230,12 +417,19 @@ public class OrchestratorService : IOrchestrator
             CreatedAt = DateTime.UtcNow
         });
 
-        task.Status = WorkTaskStatus.Waiting;
-        task.PendingQuestion = null;
-        task.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
-
-        await ProcessTaskAsync(taskId, ct);
+        // Register before saving Waiting so BackgroundService skips this task
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _registry.Register(taskId, cts, tcs);
+        try
+        {
+            task.Status = WorkTaskStatus.Waiting;
+            task.PendingQuestion = null;
+            task.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            await ProcessTaskAsync(taskId, ct);
+        }
+        finally { _registry.Unregister(taskId); }
     }
 
     public async Task RetryTaskAsync(Guid taskId, CancellationToken ct = default)
@@ -257,12 +451,19 @@ public class OrchestratorService : IOrchestrator
             CreatedAt = DateTime.UtcNow
         });
 
-        task.Status = WorkTaskStatus.Waiting;
-        task.ErrorMessage = null;
-        task.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
-
-        await ProcessTaskAsync(taskId, ct);
+        // Register before saving Waiting so BackgroundService skips this task
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _registry.Register(taskId, cts, tcs);
+        try
+        {
+            task.Status = WorkTaskStatus.Waiting;
+            task.ErrorMessage = null;
+            task.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            await ProcessTaskAsync(taskId, ct);
+        }
+        finally { _registry.Unregister(taskId); }
     }
 
     public async Task DeleteTaskAsync(Guid taskId, CancellationToken ct = default)

@@ -4,5 +4,6 @@ public enum ContextEntryKind
 {
     AgentOutput,
     UserAnswer,
-    SystemNote
+    SystemNote,
+    ShellOutput
 }

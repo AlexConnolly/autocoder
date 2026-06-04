@@ -13,7 +13,9 @@ public class Column
     public string? OutputSchemaHint { get; set; }
     public Guid? BackwardTargetColumnId { get; set; }
     public bool AutoForward { get; set; }
+    public bool AgentEnabled { get; set; } = true;
     public int TimeoutSeconds { get; set; } = 300;
     public int MaxAgentTurns { get; set; } = 10;
     public Board Board { get; set; } = null!;
+    public List<ColumnShellCommand> ShellCommands { get; set; } = new();
 }

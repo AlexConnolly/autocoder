@@ -12,6 +12,8 @@ public class RunningTaskRegistry : IRunningTaskRegistry
         _tasks[taskId] = (cts, completion);
     }
 
+    public bool IsRegistered(Guid taskId) => _tasks.ContainsKey(taskId);
+
     public void Unregister(Guid taskId)
     {
         if (_tasks.TryRemove(taskId, out var entry))

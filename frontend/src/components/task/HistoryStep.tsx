@@ -28,6 +28,15 @@ export default function HistoryStep({ entry, defaultOpen = false }: Props) {
     );
   }
 
+  if (entry.kind === 'ShellOutput') {
+    return (
+      <div className="pl-3 border-l border-zinc-300 dark:border-zinc-700">
+        <div className="text-[11px] text-zinc-500 mb-1 font-mono">$ shell commands</div>
+        <p className="text-sm text-zinc-700 dark:text-zinc-300">{entry.content}</p>
+      </div>
+    );
+  }
+
   // AgentOutput
   let summary: string | undefined;
   try {

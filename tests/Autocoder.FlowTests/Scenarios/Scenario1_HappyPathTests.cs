@@ -23,7 +23,7 @@ public class Scenario1_HappyPathTests : FlowTestBase
         var afterSpec = await GetTaskAsync(taskId);
         afterSpec.CurrentColumnId.Should().Be(InProgressColumnId, "spec forward moves task to In Progress");
         afterSpec.Status.Should().Be(WorkTaskStatus.PendingApproval, "In Specification has AutoForward=false");
-        afterSpec.BranchName.Should().Be("feature/csv-export-button");
+        afterSpec.BranchName.Should().Be("autocoder/add-csv-export-button-to-the-data-table");
 
         // User approves spec
         await Orchestrator.ApproveTaskAsync(taskId);
@@ -99,7 +99,7 @@ public class Scenario1_HappyPathTests : FlowTestBase
 
         MockGit.Verify(
             g => g.SetupWorktreeAsync(
-                It.Is<WorkTask>(t => t.BranchName == "feature/csv-export-button"),
+                It.Is<WorkTask>(t => t.BranchName == "autocoder/add-csv-export-button"),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -117,7 +117,7 @@ public class Scenario1_HappyPathTests : FlowTestBase
         await Orchestrator.ProcessTaskAsync(taskId);
 
         var task = await GetTaskAsync(taskId);
-        task.BranchName.Should().Be("feature/csv-export-button");
+        task.BranchName.Should().Be("autocoder/add-csv-export-button");
 
         MockGit.Verify(
             g => g.SetupWorktreeAsync(It.IsAny<WorkTask>(), It.IsAny<CancellationToken>()),

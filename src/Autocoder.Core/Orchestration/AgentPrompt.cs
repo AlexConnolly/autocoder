@@ -1,5 +1,7 @@
 namespace Autocoder.Core.Orchestration;
 
+public enum AgentPromptKind { Worker, Determiner, Summarizer }
+
 public class AgentPrompt
 {
     public Guid ColumnId { get; set; }
@@ -11,5 +13,6 @@ public class AgentPrompt
     public Guid TaskId { get; set; }
     public Guid BoardId { get; set; }
     public string? WorktreePath { get; set; }
-    public bool StreamJson { get; set; } = true;
+    public AgentPromptKind Kind { get; set; } = AgentPromptKind.Worker;
+    public bool StreamJson => Kind == AgentPromptKind.Worker;
 }

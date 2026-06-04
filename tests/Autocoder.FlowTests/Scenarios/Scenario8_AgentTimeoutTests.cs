@@ -81,7 +81,7 @@ public class Scenario8_AgentTimeoutTests : FlowTestBase
         await Orchestrator.ProcessTaskAsync(taskId);
 
         var task = await GetTaskAsync(taskId);
-        task.BranchName.Should().Be("feature/csv-export-button",
+        task.BranchName.Should().Be("autocoder/add-csv-export-button",
             "timeout in a later step must not clear the branch set by the spec step");
     }
 

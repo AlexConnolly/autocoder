@@ -22,47 +22,57 @@ public class MockAgentRunner : IAgentRunner
         ct.ThrowIfCancellationRequested();
         ReceivedPrompts.Add(prompt);
 
-        // Determiner phase (StreamJson=false): auto-generate routing from worker result
-        if (!prompt.StreamJson)
+        switch (prompt.Kind)
         {
-            if (_lastWorkerResult.TryGetValue(prompt.ColumnName, out var workerResult))
-            {
-                if (workerResult.TimedOut)
-                    return Task.FromResult(AgentResultBuilder.Timeout());
-
-                if (workerResult.StructuredOutput is null)
-                    return Task.FromResult(AgentResultBuilder.InvalidOutput());
-
-                var json = workerResult.StructuredOutput.RawJson;
+            case AgentPromptKind.Summarizer:
+                // Return a plain-text summary — content doesn't matter for routing tests
                 return Task.FromResult(new AgentResult
                 {
-                    FullOutput       = $"<<<STRUCTURED_OUTPUT>>>\n{json}\n<<<END_STRUCTURED_OUTPUT>>>",
-                    StructuredOutput = workerResult.StructuredOutput,
-                    TimedOut         = false,
+                    FullOutput = "All shell commands completed successfully.",
+                    StructuredOutput = null,
+                    TimedOut = false,
                 });
-            }
-            // No prior worker result — return forward as safe default
-            return Task.FromResult(AgentResultBuilder.Forward());
-        }
 
-        // Worker phase (StreamJson=true): use configured result
-        if (_columnQueues.TryGetValue(prompt.ColumnName, out var queue) && queue.Count > 0)
-        {
-            var result = queue.Dequeue();
-            _lastWorkerResult[prompt.ColumnName] = result;
-            return Task.FromResult(result);
-        }
+            case AgentPromptKind.Determiner:
+                // Auto-generate routing JSON from the last worker result for this column
+                if (_lastWorkerResult.TryGetValue(prompt.ColumnName, out var workerResult))
+                {
+                    if (workerResult.TimedOut)
+                        return Task.FromResult(AgentResultBuilder.Timeout());
 
-        throw new InvalidOperationException(
-            $"No mock response configured for column '{prompt.ColumnName}'. " +
-            $"Add one with .ForColumn(\"{prompt.ColumnName}\", AgentResultBuilder.*)");
+                    if (workerResult.StructuredOutput is null)
+                        return Task.FromResult(AgentResultBuilder.InvalidOutput());
+
+                    var json = workerResult.StructuredOutput.RawJson;
+                    return Task.FromResult(new AgentResult
+                    {
+                        FullOutput       = $"<<<STRUCTURED_OUTPUT>>>\n{json}\n<<<END_STRUCTURED_OUTPUT>>>",
+                        StructuredOutput = workerResult.StructuredOutput,
+                        TimedOut         = false,
+                    });
+                }
+                // No prior worker result — return forward as safe default
+                return Task.FromResult(AgentResultBuilder.Forward());
+
+            default: // Worker
+                if (_columnQueues.TryGetValue(prompt.ColumnName, out var queue) && queue.Count > 0)
+                {
+                    var result = queue.Dequeue();
+                    _lastWorkerResult[prompt.ColumnName] = result;
+                    return Task.FromResult(result);
+                }
+
+                throw new InvalidOperationException(
+                    $"No mock response configured for column '{prompt.ColumnName}'. " +
+                    $"Add one with .ForColumn(\"{prompt.ColumnName}\", AgentResultBuilder.*)");
+        }
     }
 
-    // Only returns worker prompts (StreamJson=true); determiner prompts are internal plumbing
+    // Only returns worker prompts; determiner/summarizer prompts are internal plumbing
     public AgentPrompt LastPromptFor(string columnName) =>
-        ReceivedPrompts.LastOrDefault(p => p.ColumnName == columnName && p.StreamJson)
-        ?? throw new InvalidOperationException($"No prompt was received for column '{columnName}'.");
+        ReceivedPrompts.LastOrDefault(p => p.ColumnName == columnName && p.Kind == AgentPromptKind.Worker)
+        ?? throw new InvalidOperationException($"No worker prompt was received for column '{columnName}'.");
 
     public IEnumerable<AgentPrompt> AllPromptsFor(string columnName) =>
-        ReceivedPrompts.Where(p => p.ColumnName == columnName && p.StreamJson);
+        ReceivedPrompts.Where(p => p.ColumnName == columnName && p.Kind == AgentPromptKind.Worker);
 }

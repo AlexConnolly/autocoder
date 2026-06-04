@@ -29,8 +29,8 @@ public class Scenario7_ParallelTasksTests : FlowTestBase
         var taskA = await GetTaskAsync(taskAId);
         var taskB = await GetTaskAsync(taskBId);
 
-        taskA.BranchName.Should().Be("feature/csv-export");
-        taskB.BranchName.Should().Be("fix/login-redirect");
+        taskA.BranchName.Should().Be("autocoder/add-csv-export");
+        taskB.BranchName.Should().Be("autocoder/fix-login-redirect-bug");
     }
 
     [Fact]
@@ -52,13 +52,13 @@ public class Scenario7_ParallelTasksTests : FlowTestBase
 
         MockGit.Verify(
             g => g.SetupWorktreeAsync(
-                It.Is<WorkTask>(t => t.BranchName == "feature/csv-export"),
+                It.Is<WorkTask>(t => t.BranchName == "autocoder/add-csv-export"),
                 It.IsAny<CancellationToken>()),
             Times.Once);
 
         MockGit.Verify(
             g => g.SetupWorktreeAsync(
-                It.Is<WorkTask>(t => t.BranchName == "fix/login-redirect"),
+                It.Is<WorkTask>(t => t.BranchName == "autocoder/fix-login-redirect-bug"),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -114,7 +114,7 @@ public class Scenario7_ParallelTasksTests : FlowTestBase
 
         taskA.Status.Should().Be(WorkTaskStatus.Error);
         taskB.Status.Should().Be(WorkTaskStatus.PendingApproval);
-        taskB.BranchName.Should().Be("fix/login-redirect");
+        taskB.BranchName.Should().Be("autocoder/fix-login-redirect-bug");
     }
 
     [Fact]

@@ -42,6 +42,10 @@ public class PromptBuilder
                         sb.AppendLine($"\n## {entry.ColumnName} [{entry.Action}]");
                         sb.AppendLine(entry.Content);
                         break;
+                    case ContextEntryKind.ShellOutput:
+                        sb.AppendLine($"\n## {entry.ColumnName} [Shell Commands]");
+                        sb.AppendLine(entry.Content);
+                        break;
                     case ContextEntryKind.UserAnswer:
                         sb.AppendLine("\n## User Response");
                         sb.AppendLine(entry.Content);
@@ -78,10 +82,55 @@ public class PromptBuilder
             TaskId = task.Id,
             BoardId = task.BoardId,
             WorktreePath = workDir,
+            Kind = AgentPromptKind.Worker,
         };
     }
 
-    public AgentPrompt BuildDeterminer(WorkTask task, Column column, string workerOutput)
+    public AgentPrompt BuildSummarizer(WorkTask task, Column column, IReadOnlyList<ShellCommandResult> results)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine("# SHELL COMMAND RESULTS");
+        sb.AppendLine($"Task: {task.Title}");
+        sb.AppendLine($"Stage: {column.Name}");
+        sb.AppendLine("\nThe following commands ran as part of this stage:");
+
+        foreach (var r in results)
+        {
+            sb.AppendLine($"\n## $ {r.Command}");
+            sb.AppendLine($"Exit code: {r.ExitCode}");
+            if (!string.IsNullOrWhiteSpace(r.Stdout))
+            {
+                var stdout = r.Stdout.Length > 2000 ? r.Stdout[..2000] + "\n...[truncated]" : r.Stdout;
+                sb.AppendLine(stdout);
+            }
+            if (!string.IsNullOrWhiteSpace(r.Stderr))
+            {
+                sb.AppendLine("Stderr:");
+                var stderr = r.Stderr.Length > 1000 ? r.Stderr[..1000] + "\n...[truncated]" : r.Stderr;
+                sb.AppendLine(stderr);
+            }
+        }
+
+        sb.AppendLine("\n---");
+        sb.AppendLine("Summarise the above in 2-4 sentences. Be factual and specific.");
+        sb.AppendLine("State which commands passed (exit 0) or failed, include key error messages if any.");
+        sb.AppendLine("Write only the summary. No JSON. No headers.");
+
+        return new AgentPrompt
+        {
+            ColumnId = column.Id,
+            ColumnName = column.Name,
+            Content = sb.ToString(),
+            MaxTurns = 1,
+            TaskId = task.Id,
+            BoardId = task.BoardId,
+            WorktreePath = null,
+            Kind = AgentPromptKind.Summarizer,
+        };
+    }
+
+    public AgentPrompt BuildDeterminer(WorkTask task, Column column, string workerOutput, string? shellSummary = null)
     {
         var sb = new StringBuilder();
 
@@ -93,11 +142,20 @@ public class PromptBuilder
         if (!string.IsNullOrEmpty(column.Instructions))
             sb.AppendLine(column.Instructions);
 
-        sb.AppendLine("\n## Work output from the agent:");
-        sb.AppendLine(workerOutput);
+        if (!string.IsNullOrWhiteSpace(workerOutput))
+        {
+            sb.AppendLine("\n## Work output from the agent:");
+            sb.AppendLine(workerOutput);
+        }
+
+        if (shellSummary is not null)
+        {
+            sb.AppendLine("\n## Shell command results:");
+            sb.AppendLine(shellSummary);
+        }
 
         sb.AppendLine("\n## Your job");
-        sb.AppendLine("Based ONLY on the work output text above, decide how this task should be routed.");
+        sb.AppendLine("Based on the output above, decide how this task should be routed.");
         sb.AppendLine("Do NOT use any tools. Do NOT read any files. Do NOT run any commands.");
         sb.AppendLine("Just read the summary text and output the JSON decision immediately.");
         sb.AppendLine();
@@ -110,8 +168,7 @@ public class PromptBuilder
         sb.AppendLine("<<<STRUCTURED_OUTPUT>>>");
         sb.AppendLine("{");
         sb.AppendLine("  \"action\": \"forward\",");
-        sb.AppendLine("  \"summary\": \"one sentence describing what was done\",");
-        sb.AppendLine("  \"branchName\": \"branch-name-if-mentioned-or-omit-this-field\"");
+        sb.AppendLine("  \"summary\": \"one sentence describing what was done\"");
         sb.AppendLine("}");
         sb.AppendLine("<<<END_STRUCTURED_OUTPUT>>>");
 
@@ -127,7 +184,7 @@ public class PromptBuilder
             TaskId = task.Id,
             BoardId = task.BoardId,
             WorktreePath = workDir,
-            StreamJson = false,
+            Kind = AgentPromptKind.Determiner,
         };
     }
 }

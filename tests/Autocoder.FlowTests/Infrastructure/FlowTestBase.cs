@@ -38,9 +38,12 @@ public abstract class FlowTestBase : IAsyncLifetime
                .Returns(Task.CompletedTask);
         MockGit.Setup(g => g.TeardownWorktreeAsync(It.IsAny<WorkTask>(), It.IsAny<CancellationToken>()))
                .Returns(Task.CompletedTask);
+        MockGit.Setup(g => g.PushAndMergeAsync(It.IsAny<WorkTask>(), It.IsAny<CancellationToken>()))
+               .ReturnsAsync(true);
 
         var mockRegistry = new Mock<IRunningTaskRegistry>();
         mockRegistry.Setup(r => r.CancelAndWaitAsync(It.IsAny<Guid>(), It.IsAny<TimeSpan>())).ReturnsAsync(true);
+        mockRegistry.Setup(r => r.IsRegistered(It.IsAny<Guid>())).Returns(false);
         Orchestrator = new OrchestratorService(Db, MockAgent, MockGit.Object, new PromptBuilder(), mockRegistry.Object, NullLogger<OrchestratorService>.Instance);
     }
 

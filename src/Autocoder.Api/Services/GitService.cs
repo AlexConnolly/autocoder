@@ -73,6 +73,51 @@ public class GitService : IGitService
         task.WorktreePath = firstWorktreePath;
     }
 
+    public async Task<bool> PushAndMergeAsync(WorkTask task, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(task.BranchName)) return true;
+
+        var repos = task.Board?.Repositories;
+        if (repos is null or { Count: 0 }) return true;
+
+        var anyConflict = false;
+
+        foreach (var repo in repos)
+        {
+            if (!Directory.Exists(repo.LocalPath))
+            {
+                _logger.LogWarning("Repository path does not exist: {Path}", repo.LocalPath);
+                continue;
+            }
+
+            // Push feature branch to origin (retry 3x)
+            await RunGitWithRetryAsync(repo.LocalPath, $"push origin {task.BranchName}", ct);
+
+            await RunGitAsync(repo.LocalPath,
+                $"checkout {repo.DefaultBranch}",
+                ct, throwOnError: false);
+
+            var exitCode = await RunGitAsync(repo.LocalPath,
+                $"merge --no-ff {task.BranchName} -m \"Merge branch '{task.BranchName}'\"",
+                ct, throwOnError: false, returnExitCode: true);
+
+            if (exitCode != 0)
+            {
+                _logger.LogWarning(
+                    "Merge conflict for {Branch} into {Default} in repo {Repo} — aborting",
+                    task.BranchName, repo.DefaultBranch, repo.Name);
+                await RunGitAsync(repo.LocalPath, "merge --abort", ct, throwOnError: false);
+                anyConflict = true;
+                continue;
+            }
+
+            // Push default branch to origin (retry 3x)
+            await RunGitWithRetryAsync(repo.LocalPath, $"push origin {repo.DefaultBranch}", ct);
+        }
+
+        return !anyConflict;
+    }
+
     public async Task TeardownWorktreeAsync(WorkTask task, CancellationToken ct = default)
     {
         var repos = task.Board?.Repositories;
@@ -93,7 +138,27 @@ public class GitService : IGitService
     private string GetWorktreePath(Guid taskId, string repoName) =>
         Path.Combine(_worktreeBaseDir, taskId.ToString(), repoName);
 
-    private async Task RunGitAsync(string repoPath, string args, CancellationToken ct, bool throwOnError = true)
+    private async Task RunGitWithRetryAsync(string repoPath, string args, CancellationToken ct,
+        int maxAttempts = 3, int delayMs = 2000)
+    {
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            var code = await RunGitAsync(repoPath, args, ct, throwOnError: false, returnExitCode: true);
+            if (code == 0 || attempt == maxAttempts)
+            {
+                if (code != 0)
+                    _logger.LogWarning("git {Args} failed after {Max} attempts", args, maxAttempts);
+                return;
+            }
+            _logger.LogWarning("git {Args} failed (attempt {A}/{Max}), retrying in {D}ms", args, attempt, maxAttempts, delayMs);
+            await Task.Delay(delayMs, ct);
+        }
+    }
+
+    private async Task RunGitAsync(string repoPath, string args, CancellationToken ct, bool throwOnError = true) =>
+        await RunGitAsync(repoPath, args, ct, throwOnError, returnExitCode: false);
+
+    private async Task<int> RunGitAsync(string repoPath, string args, CancellationToken ct, bool throwOnError, bool returnExitCode)
     {
         _logger.LogDebug("git -C \"{Repo}\" {Args}", repoPath, args);
 
@@ -117,5 +182,7 @@ public class GitService : IGitService
             throw new InvalidOperationException(
                 $"git {args} failed (exit {p.ExitCode}): {err.Trim()}");
         }
+
+        return p.ExitCode;
     }
 }

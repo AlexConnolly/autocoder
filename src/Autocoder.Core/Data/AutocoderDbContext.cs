@@ -9,6 +9,7 @@ public class AutocoderDbContext : DbContext
 
     public DbSet<Board> Boards => Set<Board>();
     public DbSet<Column> Columns => Set<Column>();
+    public DbSet<ColumnShellCommand> ColumnShellCommands => Set<ColumnShellCommand>();
     public DbSet<WorkTask> WorkTasks => Set<WorkTask>();
     public DbSet<ContextEntry> ContextEntries => Set<ContextEntry>();
     public DbSet<BoardRepository> Repositories => Set<BoardRepository>();
@@ -23,7 +24,17 @@ public class AutocoderDbContext : DbContext
             e.HasMany(b => b.Tasks).WithOne(t => t.Board).HasForeignKey(t => t.BoardId);
         });
 
-        mb.Entity<Column>(e => e.HasKey(c => c.Id));
+        mb.Entity<Column>(e =>
+        {
+            e.HasKey(c => c.Id);
+            e.HasMany(c => c.ShellCommands)
+             .WithOne(s => s.Column)
+             .HasForeignKey(s => s.ColumnId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        mb.Entity<ColumnShellCommand>(e => e.HasKey(s => s.Id));
+
         mb.Entity<WorkTask>(e =>
         {
             e.HasKey(t => t.Id);

@@ -41,6 +41,22 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AutocoderDbContext>();
     db.Database.EnsureCreated();
 
+    // Schema migrations for new columns/tables (idempotent)
+    db.Database.ExecuteSqlRaw("""
+        CREATE TABLE IF NOT EXISTS ColumnShellCommands (
+            Id TEXT NOT NULL,
+            ColumnId TEXT NOT NULL,
+            Command TEXT NOT NULL,
+            WorkingDirectory TEXT NULL,
+            Position INTEGER NOT NULL DEFAULT 0,
+            CONSTRAINT PK_ColumnShellCommands PRIMARY KEY (Id),
+            CONSTRAINT FK_ColumnShellCommands_Columns_ColumnId FOREIGN KEY (ColumnId) REFERENCES Columns (Id) ON DELETE CASCADE
+        )
+    """);
+
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Columns ADD COLUMN AgentEnabled INTEGER NOT NULL DEFAULT 1"); }
+    catch { /* column already exists */ }
+
     // Reset tasks that were Running when the server last shut down
     var stuckTasks = db.WorkTasks.Where(t => t.Status == WorkTaskStatus.Running).ToList();
     foreach (var t in stuckTasks)
