@@ -111,7 +111,7 @@ public class OrchestratorService : IOrchestrator
             _logger.LogError(
                 "Determiner parse failed for task {TaskId}. Output ({Len} chars):\n{Output}",
                 taskId, determinerResult.FullOutput.Length, snippet);
-            await SetErrorAsync(task, "Determiner did not produce a valid routing decision.", ct);
+            await SetErrorAsync(task, "Determiner did not produce valid structured output for routing.", ct);
             return;
         }
 
@@ -157,10 +157,8 @@ public class OrchestratorService : IOrchestrator
                 {
                     var next = orderedColumns[currentIdx + 1];
                     task.CurrentColumnId = next.Id;
-                    if (next.Type == ColumnType.Input)
-                        task.Status = WorkTaskStatus.Done;
-                    else if (column.AutoForward)
-                        task.Status = WorkTaskStatus.Waiting;
+                    if (column.AutoForward)
+                        task.Status = next.Type == ColumnType.Input ? WorkTaskStatus.Done : WorkTaskStatus.Waiting;
                     else
                         task.Status = WorkTaskStatus.PendingApproval;
                 }

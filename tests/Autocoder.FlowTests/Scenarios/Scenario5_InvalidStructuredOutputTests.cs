@@ -64,8 +64,8 @@ public class Scenario5_InvalidStructuredOutputTests : FlowTestBase
 
         var chain = await GetContextChainAsync(taskId);
         var systemNote = chain.FirstOrDefault(e => e.Kind == ContextEntryKind.SystemNote);
-        systemNote.Should().NotBeNull("retry must add a system note warning the agent about structured output");
-        systemNote!.Content.Should().Contain("STRUCTURED_OUTPUT");
+        systemNote.Should().NotBeNull("retry must add a system note to inform the agent the previous run failed");
+        systemNote!.Content.Should().Contain("WORK SUMMARY");
 
         var task = await GetTaskAsync(taskId);
         task.Status.Should().Be(WorkTaskStatus.PendingApproval, "successful retry should advance normally");
@@ -84,8 +84,8 @@ public class Scenario5_InvalidStructuredOutputTests : FlowTestBase
         await Orchestrator.RetryTaskAsync(taskId);
 
         var retryPrompt = MockAgent.AllPromptsFor("In Specification").Last().Content;
-        retryPrompt.Should().Contain("STRUCTURED_OUTPUT",
-            "retry prompt must include the system note reminding the agent");
+        retryPrompt.Should().Contain("WORK SUMMARY",
+            "retry prompt must include the system note reminding the agent to write a clear work summary");
     }
 
     [Fact]
