@@ -65,8 +65,8 @@ export const deleteTask = (taskId: string) =>
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 
-export const updateBoard = (boardId: string, name: string, globalInstructions?: string) =>
-  put<Board>(`/boards/${boardId}`, { name, globalInstructions });
+export const updateBoard = (boardId: string, name: string, globalInstructions?: string, maxInProgress?: number | null) =>
+  put<Board>(`/boards/${boardId}`, { name, globalInstructions, maxInProgress });
 
 export const createColumn = (boardId: string, name: string, type: 'Input' | 'Agent') =>
   post<Column>(`/boards/${boardId}/columns`, { name, type });

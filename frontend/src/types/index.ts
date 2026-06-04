@@ -46,6 +46,7 @@ export interface Board {
   id: string;
   name: string;
   globalInstructions?: string;
+  maxInProgress?: number;
   columns: Column[];
   repositories: BoardRepository[];
 }
