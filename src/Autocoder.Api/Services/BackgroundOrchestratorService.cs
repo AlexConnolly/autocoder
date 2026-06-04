@@ -2,6 +2,7 @@ using Autocoder.Api.Hubs;
 using Autocoder.Core.Data;
 using Autocoder.Core.Enums;
 using Autocoder.Core.Interfaces;
+using Autocoder.Core.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -56,17 +57,58 @@ public class BackgroundOrchestratorService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AutocoderDbContext>();
 
-        // Find waiting tasks in agent columns
-        var waitingTasks = await db.WorkTasks
+        // Load all non-terminal tasks so we can count in-progress for WIP limit
+        var activeTasks = await db.WorkTasks
             .Include(t => t.Board).ThenInclude(b => b.Columns)
-            .Where(t => t.Status == WorkTaskStatus.Waiting)
+            .Where(t => t.Status != WorkTaskStatus.Done && t.Status != WorkTaskStatus.Error)
             .ToListAsync(ct);
 
-        var eligible = waitingTasks.Where(t =>
+        var waiting = activeTasks
+            .Where(t => t.Status == WorkTaskStatus.Waiting)
+            .Where(t =>
+            {
+                var col = t.Board.Columns.FirstOrDefault(c => c.Id == t.CurrentColumnId);
+                return col?.Type == ColumnType.Agent && !_registry.IsRegistered(t.Id);
+            })
+            .ToList();
+
+        // Track tasks queued for dispatch this cycle per board so the WIP check
+        // stays accurate as we iterate — prevents multiple tasks seeing the same
+        // stale in-progress count when the limit would only allow one more.
+        var pendingDispatchPerBoard = new Dictionary<Guid, int>();
+
+        var eligible = new List<WorkTask>();
+        foreach (var task in waiting)
         {
-            var col = t.Board.Columns.FirstOrDefault(c => c.Id == t.CurrentColumnId);
-            return col?.Type == ColumnType.Agent && !_registry.IsRegistered(t.Id);
-        }).ToList();
+            if (task.Board.MaxInProgress.HasValue)
+            {
+                var orderedCols = task.Board.Columns.OrderBy(c => c.Position).ToList();
+                var firstAgentCol = orderedCols.FirstOrDefault(c => c.Type == ColumnType.Agent);
+
+                // Only enforce the limit for tasks entering from the first agent column
+                if (task.CurrentColumnId == firstAgentCol?.Id)
+                {
+                    var firstColId = orderedCols.First().Id;
+                    var lastColId = orderedCols.Last().Id;
+                    var firstAgentColId = firstAgentCol.Id;
+
+                    // Count tasks actively in-progress (not in first/last col, not queued in entry column)
+                    var inProgressCount = activeTasks.Count(bt =>
+                        bt.BoardId == task.BoardId &&
+                        bt.CurrentColumnId != firstColId &&
+                        bt.CurrentColumnId != lastColId &&
+                        !(bt.Status == WorkTaskStatus.Waiting && bt.CurrentColumnId == firstAgentColId));
+
+                    var pendingCount = pendingDispatchPerBoard.GetValueOrDefault(task.BoardId, 0);
+
+                    if (inProgressCount + pendingCount >= task.Board.MaxInProgress.Value)
+                        continue;
+                }
+            }
+
+            pendingDispatchPerBoard[task.BoardId] = pendingDispatchPerBoard.GetValueOrDefault(task.BoardId, 0) + 1;
+            eligible.Add(task);
+        }
 
         foreach (var task in eligible)
         {
