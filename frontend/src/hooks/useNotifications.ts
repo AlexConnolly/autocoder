@@ -26,7 +26,7 @@ export interface NotificationsState {
   permission: NotificationPermission;
   enabled: boolean;
   canEnable: boolean;
-  toggle(): void;
+  toggle(): Promise<void>;
   notify(title: string, options?: NotificationOptions): void;
 }
 
@@ -43,16 +43,20 @@ export function useNotifications(): NotificationsState {
     return stored;
   });
 
-  // Sync permission if it changes externally (e.g. user revokes in browser settings)
+  // Sync permission when tab becomes visible — catches external revocation from browser settings
   useEffect(() => {
     if (!isSupported) return;
-    const current = Notification.permission;
-    setPermission(current);
-    if (current === 'denied' && enabled) {
-      setEnabled(false);
-      writeEnabled(false);
-    }
-  });
+    const sync = () => {
+      const current = Notification.permission;
+      setPermission(current);
+      if (current === 'denied' && enabled) {
+        setEnabled(false);
+        writeEnabled(false);
+      }
+    };
+    document.addEventListener('visibilitychange', sync);
+    return () => document.removeEventListener('visibilitychange', sync);
+  }, [enabled]);
 
   const toggle = useCallback(async () => {
     if (!isSupported) return;

@@ -14,6 +14,17 @@ interface Options {
 export function useSignalR({ boardId, enabled, onTaskUpdated, onLiveOutput, onContextEntryAdded, onTaskDeleted }: Options) {
   const connectionRef = useRef<signalR.HubConnection | null>(null);
 
+  // Keep latest callbacks in refs so SignalR handlers always call the current version,
+  // not the stale closure from the effect's initial run.
+  const onTaskUpdatedRef = useRef(onTaskUpdated);
+  const onLiveOutputRef = useRef(onLiveOutput);
+  const onContextEntryAddedRef = useRef(onContextEntryAdded);
+  const onTaskDeletedRef = useRef(onTaskDeleted);
+  onTaskUpdatedRef.current = onTaskUpdated;
+  onLiveOutputRef.current = onLiveOutput;
+  onContextEntryAddedRef.current = onContextEntryAdded;
+  onTaskDeletedRef.current = onTaskDeleted;
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -23,10 +34,10 @@ export function useSignalR({ boardId, enabled, onTaskUpdated, onLiveOutput, onCo
       .configureLogging(signalR.LogLevel.Warning)
       .build();
 
-    connection.on('TaskUpdated', (task: WorkTask) => onTaskUpdated(task));
-    connection.on('LiveOutput', (taskId: string, line: string) => onLiveOutput(taskId, line));
-    connection.on('ContextEntryAdded', (taskId: string, entry: ContextEntry) => onContextEntryAdded(taskId, entry));
-    connection.on('TaskDeleted', (taskId: string) => onTaskDeleted?.(taskId));
+    connection.on('TaskUpdated', (task: WorkTask) => onTaskUpdatedRef.current(task));
+    connection.on('LiveOutput', (taskId: string, line: string) => onLiveOutputRef.current(taskId, line));
+    connection.on('ContextEntryAdded', (taskId: string, entry: ContextEntry) => onContextEntryAddedRef.current(taskId, entry));
+    connection.on('TaskDeleted', (taskId: string) => onTaskDeletedRef.current?.(taskId));
 
     connection
       .start()
