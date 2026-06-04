@@ -95,6 +95,24 @@ public class BackgroundOrchestratorService : BackgroundService
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error processing task {TaskId}", taskId);
+                    // Ensure the task never stays stuck in Running
+                    try
+                    {
+                        using var errorScope = _scopeFactory.CreateScope();
+                        var errorDb = errorScope.ServiceProvider.GetRequiredService<AutocoderDbContext>();
+                        var stuck = await errorDb.WorkTasks.FindAsync(new object[] { taskId }, ct);
+                        if (stuck is not null && stuck.Status == WorkTaskStatus.Running)
+                        {
+                            stuck.Status       = WorkTaskStatus.Error;
+                            stuck.ErrorMessage = $"Unexpected error: {ex.Message}";
+                            stuck.UpdatedAt    = DateTime.UtcNow;
+                            await errorDb.SaveChangesAsync(ct);
+                        }
+                    }
+                    catch (Exception inner)
+                    {
+                        _logger.LogError(inner, "Failed to mark task {TaskId} as errored after crash", taskId);
+                    }
                     await BroadcastTaskUpdatedAsync(taskId, boardId, ct);
                 }
                 finally

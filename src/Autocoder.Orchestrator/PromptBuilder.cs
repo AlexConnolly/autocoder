@@ -97,18 +97,21 @@ public class PromptBuilder
         sb.AppendLine(workerOutput);
 
         sb.AppendLine("\n## Your job");
-        sb.AppendLine("Based on the work output above, decide how this task should be routed:");
+        sb.AppendLine("Based ONLY on the work output text above, decide how this task should be routed.");
+        sb.AppendLine("Do NOT use any tools. Do NOT read any files. Do NOT run any commands.");
+        sb.AppendLine("Just read the summary text and output the JSON decision immediately.");
+        sb.AppendLine();
+        sb.AppendLine("Routing options:");
         sb.AppendLine("- forward: work is complete and successful for this stage");
         sb.AppendLine("- backward: significant problems found, needs to go back for fixes");
         sb.AppendLine("- ask: a question for the user is needed before proceeding");
         sb.AppendLine();
-        sb.AppendLine("Output ONLY this JSON block, nothing else:");
+        sb.AppendLine("Your entire response must be exactly this JSON and nothing else:");
         sb.AppendLine("<<<STRUCTURED_OUTPUT>>>");
         sb.AppendLine("{");
-        sb.AppendLine("  \"action\": \"forward | backward | ask\",");
-        sb.AppendLine("  \"summary\": \"<one sentence: what was done and result>\",");
-        sb.AppendLine("  \"question\": \"<required only when action=ask>\",");
-        sb.AppendLine("  \"branchName\": \"<git branch if mentioned in work output, otherwise omit>\"");
+        sb.AppendLine("  \"action\": \"forward\",");
+        sb.AppendLine("  \"summary\": \"one sentence describing what was done\",");
+        sb.AppendLine("  \"branchName\": \"branch-name-if-mentioned-or-omit-this-field\"");
         sb.AppendLine("}");
         sb.AppendLine("<<<END_STRUCTURED_OUTPUT>>>");
 
@@ -120,10 +123,11 @@ public class PromptBuilder
             ColumnId = column.Id,
             ColumnName = column.Name,
             Content = sb.ToString(),
-            MaxTurns = 3,
+            MaxTurns = 8,
             TaskId = task.Id,
             BoardId = task.BoardId,
             WorktreePath = workDir,
+            StreamJson = false,
         };
     }
 }

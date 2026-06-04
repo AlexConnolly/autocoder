@@ -117,9 +117,14 @@ public class OrchestratorService : IOrchestrator
 
         var output = determinerResult.StructuredOutput;
 
+        var defaultBranches = task.Board.Repositories.Select(r => r.DefaultBranch).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        defaultBranches.Add("main");
+        defaultBranches.Add("master");
+
         if (task.BranchName is null
             && output.TryGetString("branchName", out var branchName)
-            && !string.IsNullOrWhiteSpace(branchName))
+            && !string.IsNullOrWhiteSpace(branchName)
+            && !defaultBranches.Contains(branchName))
         {
             task.BranchName = branchName;
             await _gitService.SetupWorktreeAsync(task, ct);
@@ -163,19 +168,17 @@ public class OrchestratorService : IOrchestrator
                 break;
 
             case TransitionAction.Backward:
-                Guid targetId;
-                if (column.BackwardTargetColumnId.HasValue)
+                var backTarget = column.BackwardTargetColumnId.HasValue
+                    ? orderedColumns.FirstOrDefault(c => c.Id == column.BackwardTargetColumnId.Value)
+                    : orderedColumns.Take(currentIdx).LastOrDefault(c => c.Type == ColumnType.Agent);
+
+                if (backTarget is null)
                 {
-                    targetId = column.BackwardTargetColumnId.Value;
+                    // First agent column — nowhere to go back, treat as forward
+                    _logger.LogWarning("Column '{Col}' requested backward but has no target; treating as forward", column.Name);
+                    goto case TransitionAction.Forward;
                 }
-                else
-                {
-                    var prev = orderedColumns.Take(currentIdx)
-                        .LastOrDefault(c => c.Type == ColumnType.Agent);
-                    targetId = prev?.Id ?? throw new InvalidOperationException(
-                        $"No backward target found for column '{column.Name}'.");
-                }
-                task.CurrentColumnId = targetId;
+                task.CurrentColumnId = backTarget.Id;
                 task.Status = WorkTaskStatus.Waiting;
                 task.PendingQuestion = null;
                 break;

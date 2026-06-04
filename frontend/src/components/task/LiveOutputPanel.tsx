@@ -20,15 +20,15 @@ export default function LiveOutputPanel({ output }: Props) {
     <div className="space-y-2">
       <div
         ref={ref}
-        className="bg-[#0a0a0b] rounded-lg p-3 overflow-y-auto max-h-64 font-mono text-[13px] leading-relaxed"
+        className="bg-[var(--color-bg)] rounded-lg p-3 overflow-y-auto max-h-64 font-mono text-[13px] leading-relaxed"
       >
         {displayLines.map((line, i) => (
-          <div key={i} className="text-zinc-300">
-            {line || ' '}
+          <div key={i} className="text-zinc-700 dark:text-zinc-300">
+            {line || ' '}
           </div>
         ))}
         {!isRouting && (
-          <span className="inline-block w-2 h-4 bg-zinc-400 animate-pulse align-middle" />
+          <span className="inline-block w-2 h-4 bg-zinc-500 dark:bg-zinc-400 animate-pulse align-middle" />
         )}
       </div>
       {isRouting && (

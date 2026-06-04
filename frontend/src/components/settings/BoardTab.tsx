@@ -39,7 +39,7 @@ export default function BoardTab() {
         <input
           value={form.name}
           onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-          className="w-full bg-[#0f0f10] border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500 transition-colors"
+          className="w-full bg-[var(--color-bg)] border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-500 transition-colors"
         />
       </div>
 
@@ -50,7 +50,7 @@ export default function BoardTab() {
           value={form.globalInstructions}
           onChange={e => setForm(p => ({ ...p, globalInstructions: e.target.value }))}
           rows={4}
-          className="w-full bg-[#0f0f10] border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 resize-none transition-colors"
+          className="w-full bg-[var(--color-bg)] border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-zinc-500 resize-none transition-colors"
         />
       </div>
 
@@ -58,7 +58,7 @@ export default function BoardTab() {
         <button
           onClick={save}
           disabled={saving}
-          className="px-4 py-2 bg-zinc-100 text-zinc-900 text-sm font-semibold rounded-lg hover:bg-white transition-colors disabled:opacity-50"
+          className="px-4 py-2 bg-zinc-800 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 text-sm font-semibold rounded-lg hover:bg-zinc-700 dark:hover:bg-white transition-colors disabled:opacity-50"
         >
           {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save changes'}
         </button>

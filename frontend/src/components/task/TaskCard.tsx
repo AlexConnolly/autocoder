@@ -53,13 +53,13 @@ export default function TaskCard({ task, column, liveOutput, onRetry, onClick }:
 // ─── Variants ────────────────────────────────────────────────────────────────
 
 function cardBase(variant: string): string {
-  const base = 'bg-[#18181b] cursor-pointer shadow-card';
+  const base = 'bg-surface cursor-pointer shadow-card';
   const variants: Record<string, string> = {
-    'no-border': `${base} border border-[#2a2a30] hover:bg-[#1f1f23] hover:border-zinc-600`,
-    'blue':      `${base} border-l-2 border-blue-500 border-t border-r border-b border-[#2a2a30] bg-blue-950/20`,
-    'amber':     `${base} border-l-2 border-amber-500 border-t border-r border-b border-amber-500/30 bg-amber-950/30 ring-1 ring-amber-500/20`,
-    'red':       `${base} border-l-2 border-red-500 border-t border-r border-b border-[#2a2a30] bg-red-950/20`,
-    'done':      'bg-[#18181b]/60 border border-zinc-800/50 opacity-60 hover:opacity-80 cursor-pointer',
+    'no-border': `${base} border border-border hover:bg-surface-raised hover:border-zinc-600`,
+    'blue':      `${base} border-l-2 border-blue-500 border-t border-r border-b border-border bg-blue-100/60 dark:bg-blue-950/20`,
+    'amber':     `${base} border-l-2 border-amber-500 border-t border-r border-b border-amber-500/30 bg-amber-50/60 dark:bg-amber-950/30 ring-1 ring-amber-500/20`,
+    'red':       `${base} border-l-2 border-red-500 border-t border-r border-b border-border bg-red-100/60 dark:bg-red-950/20`,
+    'done':      'bg-surface/60 border border-zinc-200 dark:border-zinc-800/50 opacity-60 hover:opacity-80 cursor-pointer',
   };
   return variants[variant] ?? base;
 }
@@ -69,10 +69,10 @@ function cardBase(variant: string): string {
 function WaitingCard({ task, column, onClick }: { task: WorkTask; column: Column; onClick: (id: string) => void }) {
   return (
     <div className="p-3" onClick={() => onClick(task.id)}>
-      <p className="text-sm text-zinc-200 font-medium leading-snug">{task.title}</p>
+      <p className="text-sm text-zinc-800 dark:text-zinc-200 font-medium leading-snug">{task.title}</p>
       <div className="flex items-center gap-1.5 mt-1.5">
         <span className="text-[11px] text-zinc-500">{column.name}</span>
-        <span className="text-zinc-700">·</span>
+        <span className="text-zinc-400 dark:text-zinc-700">·</span>
         <span className="text-[11px] text-zinc-600">{relativeTime(task.updatedAt)}</span>
       </div>
     </div>
@@ -89,12 +89,12 @@ function RunningCard({ task, column, liveOutput, onClick }: { task: WorkTask; co
       <div className="flex items-start gap-2">
         <span className="mt-1 w-2 h-2 rounded-full bg-blue-500 animate-pulse flex-none" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-zinc-100 font-medium leading-snug">{task.title}</p>
+          <p className="text-sm text-zinc-900 dark:text-zinc-100 font-medium leading-snug">{task.title}</p>
           <span className="text-[11px] text-zinc-500">{column.name}</span>
         </div>
       </div>
       {lastLine && (
-        <p className="mt-2 text-[12px] font-mono text-zinc-400 truncate">{lastLine}</p>
+        <p className="mt-2 text-[12px] font-mono text-zinc-500 dark:text-zinc-400 truncate">{lastLine}</p>
       )}
     </div>
   );
@@ -108,14 +108,14 @@ function AskingCard({ task, column, onClick }: { task: WorkTask; column: Column;
       <div className="flex items-start gap-2 mb-2">
         <span className="text-amber-400"><LightningIcon /></span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-zinc-100 font-medium leading-snug">{task.title}</p>
+          <p className="text-sm text-zinc-900 dark:text-zinc-100 font-medium leading-snug">{task.title}</p>
           <span className="text-[11px] text-amber-500/80">{column.name} — needs your input</span>
         </div>
       </div>
       {task.pendingQuestion && (
         <>
           <div className="border-t border-amber-500/20 my-2" />
-          <p className="text-[13px] text-zinc-400 italic leading-relaxed line-clamp-3">
+          <p className="text-[13px] text-zinc-600 dark:text-zinc-400 italic leading-relaxed line-clamp-3">
             {task.pendingQuestion}
           </p>
           <div className="mt-2.5">
@@ -137,7 +137,7 @@ function ErrorCard({ task, column, onRetry, onClick }: { task: WorkTask; column:
       <div className="flex items-start gap-2 mb-2">
         <span className="text-red-400 text-sm flex-none mt-0.5">✕</span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-zinc-100 font-medium leading-snug">{task.title}</p>
+          <p className="text-sm text-zinc-900 dark:text-zinc-100 font-medium leading-snug">{task.title}</p>
           <span className="text-[11px] text-zinc-500">{column.name}</span>
         </div>
       </div>
@@ -146,7 +146,7 @@ function ErrorCard({ task, column, onRetry, onClick }: { task: WorkTask; column:
       )}
       <button
         onClick={(e) => { e.stopPropagation(); onRetry(task.id); }}
-        className="text-xs text-red-400 border border-red-800/50 bg-red-950/20 hover:bg-red-950/40 rounded-md px-2 py-1 transition-colors"
+        className="text-xs text-red-500 dark:text-red-400 border border-red-300/60 dark:border-red-800/50 bg-red-50/60 dark:bg-red-950/20 hover:bg-red-100/60 dark:hover:bg-red-950/40 rounded-md px-2 py-1 transition-colors"
       >
         Retry
       </button>

@@ -1,0 +1,24 @@
+# ─── .NET / C# ───────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.db
+*.db-shm
+*.db-wal
+*.nupkg
+*.snupkg
+publish/
+TestResults/
+
+# ─── Frontend (Node / Vite) ──────────────────────────────────────────────────
+node_modules/
+dist/
+.env.local
+.env.*.local
+
+# ─── OS / editor ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp

@@ -41,6 +41,23 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AutocoderDbContext>();
     db.Database.EnsureCreated();
 
+    // Reset tasks that were Running when the server last shut down
+    var stuckTasks = db.WorkTasks.Where(t => t.Status == WorkTaskStatus.Running).ToList();
+    foreach (var t in stuckTasks)
+    {
+        t.Status = WorkTaskStatus.Waiting;
+        t.UpdatedAt = DateTime.UtcNow;
+        db.ContextEntries.Add(new ContextEntry
+        {
+            Id = Guid.NewGuid(),
+            TaskId = t.Id,
+            Kind = ContextEntryKind.SystemNote,
+            Content = "Server restarted. Re-running this stage from the beginning.",
+            CreatedAt = DateTime.UtcNow,
+        });
+    }
+    if (stuckTasks.Count > 0) db.SaveChanges();
+
     var defaultBoardId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     if (!db.Boards.Any(b => b.Id == defaultBoardId))
     {

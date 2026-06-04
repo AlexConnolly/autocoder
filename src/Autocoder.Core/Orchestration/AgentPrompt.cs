@@ -11,4 +11,5 @@ public class AgentPrompt
     public Guid TaskId { get; set; }
     public Guid BoardId { get; set; }
     public string? WorktreePath { get; set; }
+    public bool StreamJson { get; set; } = true;
 }

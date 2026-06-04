@@ -2,11 +2,10 @@ import { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import BoardPage from './pages/BoardPage';
 import SettingsPage from './pages/SettingsPage';
-import { useTheme } from './hooks/useTheme';
+import { ThemeProvider } from './hooks/useTheme';
 
 export default function App() {
   const navigate = useNavigate();
-  useTheme();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -20,10 +19,12 @@ export default function App() {
   }, [navigate]);
 
   return (
-    <Routes>
-      <Route path="/" element={<BoardPage />} />
-      <Route path="/board/:boardId" element={<BoardPage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-    </Routes>
+    <ThemeProvider>
+      <Routes>
+        <Route path="/" element={<BoardPage />} />
+        <Route path="/board/:boardId" element={<BoardPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Routes>
+    </ThemeProvider>
   );
 }

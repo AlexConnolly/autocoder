@@ -42,7 +42,7 @@ export default function RepositoriesTab() {
   return (
     <div className="space-y-3 max-w-xl">
       {repos.map(repo => (
-        <div key={repo.id} className="bg-[#1f1f23] border border-[#2a2a30] rounded-lg">
+        <div key={repo.id} className="bg-surface-raised border border-border rounded-lg">
           {editing === repo.id ? (
             <RepoForm
               value={repo}
@@ -53,12 +53,12 @@ export default function RepositoriesTab() {
           ) : (
             <div className="flex items-center gap-3 px-4 py-3">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-zinc-200">{repo.name}</div>
+                <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{repo.name}</div>
                 <div className="text-[12px] text-zinc-500 font-mono truncate">{repo.localPath}</div>
               </div>
               <span className="text-[11px] text-zinc-600 font-mono">{repo.defaultBranch}</span>
-              <button onClick={() => setEditing(repo.id)} className="text-zinc-600 hover:text-zinc-300 text-xs px-2 py-1 rounded hover:bg-zinc-800 transition-colors">✎</button>
-              <button onClick={() => remove(repo.id)} className="text-zinc-700 hover:text-red-400 text-xs px-2 py-1 rounded hover:bg-zinc-800 transition-colors">✕</button>
+              <button onClick={() => setEditing(repo.id)} className="text-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-300 text-xs px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">✎</button>
+              <button onClick={() => remove(repo.id)} className="text-zinc-700 hover:text-red-400 text-xs px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">✕</button>
             </div>
           )}
         </div>
@@ -73,7 +73,7 @@ export default function RepositoriesTab() {
       ) : (
         <button
           onClick={() => setShowPicker(true)}
-          className="text-sm text-zinc-500 hover:text-zinc-300 flex items-center gap-1.5 transition-colors"
+          className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 flex items-center gap-1.5 transition-colors"
         >
           <span>+</span> Add repository
         </button>
@@ -120,10 +120,10 @@ function RepoPicker({ existing, onAdd, onClose }: {
   };
 
   return (
-    <div className="bg-[#1f1f23] border border-[#2a2a30] rounded-lg p-4 space-y-4">
+    <div className="bg-surface-raised border border-border rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-zinc-200">Find git repositories</span>
-        <button onClick={onClose} className="text-zinc-600 hover:text-zinc-300 text-xs transition-colors">✕</button>
+        <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Find git repositories</span>
+        <button onClick={onClose} className="text-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-300 text-xs transition-colors">✕</button>
       </div>
 
       {/* Scan controls */}
@@ -165,9 +165,9 @@ function RepoPicker({ existing, onAdd, onClose }: {
                   <button
                     key={r.path}
                     onClick={() => onAdd(r)}
-                    className="w-full text-left px-3 py-2 rounded hover:bg-zinc-800 transition-colors group"
+                    className="w-full text-left px-3 py-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
                   >
-                    <div className="text-sm text-zinc-200 group-hover:text-white">{r.name}</div>
+                    <div className="text-sm text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white">{r.name}</div>
                     <div className="text-[11px] text-zinc-600 font-mono truncate">{r.path}</div>
                   </button>
                 ))}
@@ -178,7 +178,7 @@ function RepoPicker({ existing, onAdd, onClose }: {
       )}
 
       {/* Manual entry fallback */}
-      <div className="border-t border-[#2a2a30] pt-3">
+      <div className="border-t border-border pt-3">
         <p className="text-[11px] text-zinc-600 mb-2">Or enter a path manually:</p>
         <div className="flex gap-2">
           <input
@@ -191,7 +191,7 @@ function RepoPicker({ existing, onAdd, onClose }: {
           <button
             onClick={addManual}
             disabled={!manualPath.trim()}
-            className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 text-xs font-semibold rounded transition-colors disabled:opacity-40"
+            className="px-3 py-1.5 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-100 text-xs font-semibold rounded transition-colors disabled:opacity-40"
           >
             Add
           </button>
@@ -219,8 +219,8 @@ function RepoForm({ value, onChange, onSave, onCancel }: {
         <input value={value.defaultBranch} onChange={e => onChange({ defaultBranch: e.target.value })} className={inputCls} />
       </Field>
       <div className="flex gap-2 pt-1">
-        <button onClick={onSave} className="px-3 py-1.5 bg-zinc-100 text-zinc-900 text-xs font-semibold rounded hover:bg-white transition-colors">Save</button>
-        <button onClick={onCancel} className="px-3 py-1.5 text-zinc-500 text-xs hover:text-zinc-300 transition-colors">Cancel</button>
+        <button onClick={onSave} className="px-3 py-1.5 bg-zinc-800 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold rounded hover:bg-zinc-700 dark:hover:bg-white transition-colors">Save</button>
+        <button onClick={onCancel} className="px-3 py-1.5 text-zinc-500 text-xs hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">Cancel</button>
       </div>
     </div>
   );
@@ -235,4 +235,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-const inputCls = 'w-full bg-[#0f0f10] border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors';
+const inputCls = 'w-full bg-[var(--color-bg)] border border-zinc-300 dark:border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors';

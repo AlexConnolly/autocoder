@@ -23,13 +23,13 @@ export default function KanbanColumn({ column, tasks, liveOutputs, onRetry, onSe
   const sorted = sortedTasks(tasks);
 
   return (
-    <div className="flex-none w-72 flex flex-col h-full border-r border-[#2a2a30] last:border-r-0">
-      <div className="sticky top-0 z-10 px-3 py-2.5 border-b border-[#2a2a30] bg-[#0c0c0d] flex items-center gap-2">
-        <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400 flex-1 truncate">
+    <div className="flex-none w-72 flex flex-col h-full border-r border-border last:border-r-0">
+      <div className="sticky top-0 z-10 px-3 py-2.5 border-b border-border bg-[var(--color-bg)] flex items-center gap-2">
+        <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 dark:text-zinc-400 flex-1 truncate">
           {column.name}
         </span>
         <span className={cn(
-          'text-[10px] px-1.5 rounded-full bg-zinc-800 text-zinc-500',
+          'text-[10px] px-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-500',
           tasks.length === 0 && 'opacity-0'
         )}>
           {tasks.length}
@@ -52,7 +52,7 @@ export default function KanbanColumn({ column, tasks, liveOutputs, onRetry, onSe
         ))}
         {tasks.length === 0 && (
           <div className="h-24 flex items-center justify-center">
-            <span className="text-[12px] text-zinc-700">No tasks</span>
+            <span className="text-[12px] text-zinc-400 dark:text-zinc-700">No tasks</span>
           </div>
         )}
       </div>

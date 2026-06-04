@@ -15,8 +15,8 @@ export default function FocusPage({ board, tasks, liveOutputs, onRetry, onSelect
   if (actionable.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-8">
-        <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse ring-2 ring-green-500/20 ring-offset-2 ring-offset-[#0f0f10]" />
-        <p className="text-sm text-zinc-400">All clear. The agents are working.</p>
+        <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse ring-2 ring-green-500/20 ring-offset-2 ring-offset-[var(--color-bg)]" />
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">All clear. The agents are working.</p>
       </div>
     );
   }

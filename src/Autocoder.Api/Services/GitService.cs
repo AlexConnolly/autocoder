@@ -52,9 +52,19 @@ public class GitService : IGitService
 
             if (!Directory.Exists(worktreeDir))
             {
+                // throwOnError: false — if the branch is already checked out elsewhere the task
+                // will run in the main repo dir rather than crashing entirely
                 await RunGitAsync(repo.LocalPath,
                     $"worktree add \"{worktreeDir}\" {task.BranchName}",
-                    ct);
+                    ct, throwOnError: false);
+
+                if (!Directory.Exists(worktreeDir))
+                {
+                    _logger.LogWarning(
+                        "Worktree dir not created for task {Id} branch {Branch} — agent will run in repo root",
+                        task.Id, task.BranchName);
+                    continue;
+                }
             }
 
             firstWorktreePath ??= worktreeDir;

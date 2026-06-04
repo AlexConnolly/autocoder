@@ -4,6 +4,7 @@ using Autocoder.Core.Interfaces;
 using Autocoder.Core.Models;
 using Autocoder.Orchestrator;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace Autocoder.FlowTests.Infrastructure;
@@ -38,7 +39,9 @@ public abstract class FlowTestBase : IAsyncLifetime
         MockGit.Setup(g => g.TeardownWorktreeAsync(It.IsAny<WorkTask>(), It.IsAny<CancellationToken>()))
                .Returns(Task.CompletedTask);
 
-        Orchestrator = new OrchestratorService(Db, MockAgent, MockGit.Object, new PromptBuilder());
+        var mockRegistry = new Mock<IRunningTaskRegistry>();
+        mockRegistry.Setup(r => r.CancelAndWaitAsync(It.IsAny<Guid>(), It.IsAny<TimeSpan>())).ReturnsAsync(true);
+        Orchestrator = new OrchestratorService(Db, MockAgent, MockGit.Object, new PromptBuilder(), mockRegistry.Object, NullLogger<OrchestratorService>.Instance);
     }
 
     public Task DisposeAsync() => Db.DisposeAsync().AsTask();
