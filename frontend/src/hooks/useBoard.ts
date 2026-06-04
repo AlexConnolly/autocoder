@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from '../api/client';
 import { mockBoard, mockContextEntries, mockLiveOutputs, mockTasks } from '../api/mockData';
 import type { Board, ContextEntry, WorkTask } from '../types';
+import { useNotifications } from './useNotifications';
 import { useSignalR } from './useSignalR';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
@@ -34,6 +35,8 @@ export interface BoardState {
 }
 
 export function useBoard(boardId = DEFAULT_BOARD_ID): BoardState {
+  const { notify } = useNotifications();
+  const taskStatusRef = useRef<Record<string, string>>({});
   const [board, setBoard]           = useState<Board>(USE_MOCK ? mockBoard : EMPTY_BOARD);
   const [tasks, setTasks]           = useState<WorkTask[]>(USE_MOCK ? mockTasks : []);
   const [liveOutputs, setLiveOutputs]   = useState<Record<string, string>>(USE_MOCK ? mockLiveOutputs : {});
@@ -57,6 +60,7 @@ export function useBoard(boardId = DEFAULT_BOARD_ID): BoardState {
         if (cancelled) return;
         setBoard(boardData);
         setTasks(tasksData);
+        tasksData.forEach(t => { taskStatusRef.current[t.id] = t.status; });
       } catch (err) {
         console.error('[useBoard] Failed to load board from API:', err);
         const port = import.meta.env.VITE_API_PORT || '7100';
@@ -75,6 +79,24 @@ export function useBoard(boardId = DEFAULT_BOARD_ID): BoardState {
     boardId,
     enabled: !USE_MOCK,
     onTaskUpdated: (task) => {
+      const prevStatus = taskStatusRef.current[task.id];
+      const statusChanged = prevStatus !== undefined && prevStatus !== task.status;
+      taskStatusRef.current[task.id] = task.status;
+
+      if (statusChanged) {
+        if (task.status === 'Done') {
+          notify(`Task complete: ${task.title}`, {
+            body: 'Your task has finished processing.',
+            tag: `task-done-${task.id}`,
+          });
+        } else if (task.status === 'Asking') {
+          notify(`Input needed: ${task.title}`, {
+            body: task.pendingQuestion ?? 'A task is waiting for your response.',
+            tag: `task-asking-${task.id}`,
+          });
+        }
+      }
+
       setTasks(prev => {
         const exists = prev.some(t => t.id === task.id);
         return exists
