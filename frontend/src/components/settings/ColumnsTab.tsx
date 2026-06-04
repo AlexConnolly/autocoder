@@ -69,23 +69,23 @@ export default function ColumnsTab() {
   return (
     <div className="space-y-2 max-w-2xl">
       {sorted.map((col, idx) => (
-        <div key={col.id} className="bg-[#1f1f23] border border-[#2a2a30] rounded-lg overflow-hidden">
+        <div key={col.id} className="bg-surface-raised border border-border rounded-lg overflow-hidden">
           <div className="flex items-center gap-2 px-3 py-2.5">
             <div className="flex flex-col gap-0.5 flex-none">
               <button disabled={idx === 0} onClick={() => move(col.id, -1)} className="text-zinc-600 hover:text-zinc-300 disabled:opacity-20 leading-none text-xs">▲</button>
               <button disabled={idx === sorted.length - 1} onClick={() => move(col.id, 1)} className="text-zinc-600 hover:text-zinc-300 disabled:opacity-20 leading-none text-xs">▼</button>
             </div>
-            <span className="flex-1 text-sm text-zinc-200">{col.name}</span>
+            <span className="flex-1 text-sm text-zinc-800 dark:text-zinc-200">{col.name}</span>
             <span className={cn(
               'text-[10px] px-1.5 py-0.5 rounded font-medium',
-              col.type === 'Agent' ? 'bg-indigo-500/15 text-indigo-400' : 'bg-zinc-700/50 text-zinc-500'
+              col.type === 'Agent' ? 'bg-indigo-500/15 text-indigo-400' : 'bg-zinc-200/80 dark:bg-zinc-700/50 text-zinc-500'
             )}>
               {col.type.toLowerCase()}
             </span>
             {col.type === 'Agent' && (
               <button
                 onClick={() => setExpanded(expanded === col.id ? null : col.id)}
-                className="text-zinc-600 hover:text-zinc-300 text-xs px-2 py-1 rounded hover:bg-zinc-800 transition-colors ml-1"
+                className="text-zinc-600 hover:text-zinc-300 text-xs px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors ml-1"
               >
                 {expanded === col.id ? '▲' : '▼'}
               </button>
@@ -93,7 +93,7 @@ export default function ColumnsTab() {
           </div>
 
           {expanded === col.id && col.type === 'Agent' && (
-            <div className="border-t border-[#2a2a30] px-4 py-4 space-y-4">
+            <div className="border-t border-border px-4 py-4 space-y-4">
               <div>
                 <Label>Instructions</Label>
                 <textarea
@@ -127,7 +127,7 @@ export default function ColumnsTab() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Timeout (seconds)</Label>
                   <input
@@ -154,7 +154,7 @@ export default function ColumnsTab() {
                 <button
                   onClick={() => saveColumn(col)}
                   disabled={saving === col.id}
-                  className="px-3 py-1.5 bg-zinc-100 text-zinc-900 text-xs font-semibold rounded hover:bg-white transition-colors disabled:opacity-50"
+                  className="px-3 py-1.5 bg-zinc-800 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold rounded hover:bg-zinc-700 dark:hover:bg-white transition-colors disabled:opacity-50"
                 >
                   {saving === col.id ? 'Saving…' : 'Save'}
                 </button>
@@ -177,7 +177,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
       onClick={() => onChange(!value)}
       className={cn(
         'relative w-9 h-5 rounded-full transition-colors',
-        value ? 'bg-indigo-500' : 'bg-zinc-700'
+        value ? 'bg-indigo-500' : 'bg-zinc-300 dark:bg-zinc-700'
       )}
     >
       <span className={cn(
@@ -188,6 +188,6 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   );
 }
 
-const inputCls = 'w-full bg-[#0f0f10] border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500 transition-colors';
-const textareaCls = 'w-full bg-[#0f0f10] border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 resize-none transition-colors';
-const selectCls = 'w-full bg-[#0f0f10] border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-500 transition-colors';
+const inputCls = 'w-full bg-[var(--color-bg)] border border-zinc-300 dark:border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-500 transition-colors';
+const textareaCls = 'w-full bg-[var(--color-bg)] border border-zinc-300 dark:border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-zinc-500 resize-none transition-colors';
+const selectCls = 'w-full bg-[var(--color-bg)] border border-zinc-300 dark:border-zinc-700 rounded px-2.5 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 focus:outline-none focus:border-zinc-500 transition-colors';
