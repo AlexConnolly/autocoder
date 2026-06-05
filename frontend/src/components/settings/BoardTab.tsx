@@ -11,7 +11,7 @@ export default function BoardTab() {
 
   useEffect(() => {
     if (USE_MOCK) {
-      setForm({ name: 'Main Project', globalInstructions: "Always follow existing code conventions. Write TypeScript. Use the project's existing test framework.", maxInProgress: '' });
+      setForm({ name: 'Main Project', globalInstructions: "Always follow existing code conventions. Write TypeScript. Use the project's existing test framework.", maxInProgress: '', cavemanMode: false });
       return;
     }
     api.fetchBoard(BOARD_ID)
