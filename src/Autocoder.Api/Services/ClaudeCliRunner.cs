@@ -31,7 +31,10 @@ public class ClaudeCliRunner : IAgentRunner
 
         var outputFormat = prompt.StreamJson ? "stream-json" : "text";
         var verbose      = prompt.StreamJson ? "--verbose" : "";
-        var args         = $"--print --output-format {outputFormat} {verbose} --max-turns {prompt.MaxTurns} --dangerously-skip-permissions".Trim();
+        var caveman      = prompt.CavemanMode
+            ? "--append-system-prompt \"Use as little context as possible. Prefer targeted lookups over broad reads. Read only specific lines you need. Use grep/search rather than reading whole files. Keep responses concise.\""
+            : "";
+        var args         = $"--print --output-format {outputFormat} {verbose} --max-turns {prompt.MaxTurns} --dangerously-skip-permissions {caveman}".Trim();
         var workDir = prompt.WorktreePath is not null && Directory.Exists(prompt.WorktreePath)
             ? prompt.WorktreePath
             : Directory.GetCurrentDirectory();

@@ -60,6 +60,9 @@ using (var scope = app.Services.CreateScope())
     try { db.Database.ExecuteSqlRaw("ALTER TABLE Boards ADD COLUMN MaxInProgress INTEGER NULL"); }
     catch { /* column already exists */ }
 
+    try { db.Database.ExecuteSqlRaw("ALTER TABLE Boards ADD COLUMN CavemanMode INTEGER NOT NULL DEFAULT 0"); }
+    catch { /* column already exists */ }
+
     // Reset tasks that were Running when the server last shut down
     var stuckTasks = db.WorkTasks.Where(t => t.Status == WorkTaskStatus.Running).ToList();
     foreach (var t in stuckTasks)

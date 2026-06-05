@@ -15,4 +15,5 @@ public class AgentPrompt
     public string? WorktreePath { get; set; }
     public AgentPromptKind Kind { get; set; } = AgentPromptKind.Worker;
     public bool StreamJson => Kind == AgentPromptKind.Worker;
+    public bool CavemanMode { get; set; }
 }

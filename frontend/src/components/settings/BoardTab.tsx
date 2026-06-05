@@ -5,13 +5,13 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 const BOARD_ID = '10000000-0000-0000-0000-000000000001';
 
 export default function BoardTab() {
-  const [form, setForm] = useState({ name: '', globalInstructions: '', maxInProgress: '' });
+  const [form, setForm] = useState({ name: '', globalInstructions: '', maxInProgress: '', cavemanMode: false });
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (USE_MOCK) {
-      setForm({ name: 'Main Project', globalInstructions: "Always follow existing code conventions. Write TypeScript. Use the project's existing test framework.", maxInProgress: '' });
+      setForm({ name: 'Main Project', globalInstructions: "Always follow existing code conventions. Write TypeScript. Use the project's existing test framework.", maxInProgress: '', cavemanMode: false });
       return;
     }
     api.fetchBoard(BOARD_ID)
@@ -19,6 +19,7 @@ export default function BoardTab() {
         name: b.name,
         globalInstructions: b.globalInstructions ?? '',
         maxInProgress: b.maxInProgress != null ? String(b.maxInProgress) : '',
+        cavemanMode: b.cavemanMode ?? false,
       }))
       .catch(console.error);
   }, []);
@@ -27,7 +28,7 @@ export default function BoardTab() {
     setSaving(true);
     try {
       const maxInProgress = form.maxInProgress.trim() === '' ? null : parseInt(form.maxInProgress, 10);
-      if (!USE_MOCK) await api.updateBoard(BOARD_ID, form.name, form.globalInstructions, maxInProgress);
+      if (!USE_MOCK) await api.updateBoard(BOARD_ID, form.name, form.globalInstructions, maxInProgress, form.cavemanMode);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
@@ -72,6 +73,22 @@ export default function BoardTab() {
           placeholder="No limit"
           className="w-32 bg-[var(--color-bg)] border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors"
         />
+      </div>
+
+      <div>
+        <label className="block text-[11px] text-zinc-500 uppercase tracking-widest mb-2">Caveman mode</label>
+        <p className="text-[11px] text-zinc-600 mb-2">
+          Instructs agents to use minimal context — prefer targeted lookups, read only specific lines, and keep responses concise.
+        </p>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.cavemanMode}
+            onChange={e => setForm(p => ({ ...p, cavemanMode: e.target.checked }))}
+            className="w-4 h-4 accent-zinc-800 dark:accent-zinc-100"
+          />
+          <span className="text-sm text-zinc-900 dark:text-zinc-100">Enable caveman mode</span>
+        </label>
       </div>
 
       <div className="pt-2">
