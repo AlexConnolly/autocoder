@@ -1,5 +1,6 @@
 using Autocoder.Core.Data;
 using Autocoder.Core.Enums;
+using Autocoder.Core.Interfaces;
 using Autocoder.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,8 @@ namespace Autocoder.Api.Controllers;
 public class BoardController : ControllerBase
 {
     private readonly AutocoderDbContext db;
-    public BoardController(AutocoderDbContext db) { this.db = db; }
+    private readonly IGitService gitService;
+    public BoardController(AutocoderDbContext db, IGitService gitService) { this.db = db; this.gitService = gitService; }
 
     [HttpGet("{boardId:guid}")]
     public async Task<ActionResult<Board>> GetBoard(Guid boardId, CancellationToken ct)
@@ -237,6 +239,43 @@ public class BoardController : ControllerBase
         await db.SaveChangesAsync(ct);
         return NoContent();
     }
+
+    // ── Branches ──────────────────────────────────────────────────────────────
+
+    [HttpGet("{boardId:guid}/branches")]
+    public async Task<ActionResult<List<BranchInfo>>> GetBranches(Guid boardId, CancellationToken ct)
+    {
+        var repos = await db.Repositories.Where(r => r.BoardId == boardId).ToListAsync(ct);
+        var tasks = await db.WorkTasks
+            .Where(t => t.BoardId == boardId && t.BranchName != null)
+            .ToListAsync(ct);
+
+        var branchNames = await gitService.ListAutocoderBranchesAsync(repos, ct);
+
+        var taskByBranch = tasks
+            .Where(t => t.BranchName != null)
+            .ToDictionary(t => t.BranchName!, t => t);
+
+        var result = branchNames.Select(name =>
+        {
+            taskByBranch.TryGetValue(name, out var task);
+            return new BranchInfo(name, task?.Id.ToString(), task?.Title, task?.Status.ToString());
+        }).ToList();
+
+        return Ok(result);
+    }
+
+    [HttpDelete("{boardId:guid}/branches")]
+    public async Task<IActionResult> DeleteBranch(
+        Guid boardId, [FromQuery] string name, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(name) || !name.StartsWith("autocoder/"))
+            return BadRequest("Only autocoder/ branches can be deleted.");
+
+        var repos = await db.Repositories.Where(r => r.BoardId == boardId).ToListAsync(ct);
+        await gitService.DeleteBranchAsync(name, repos, ct);
+        return NoContent();
+    }
 }
 
 public record UpdateBoardRequest(string Name, string? GlobalInstructions, int? MaxInProgress, bool CavemanMode = false);
@@ -248,3 +287,4 @@ public record UpdateColumnRequest(
 public record ShellCommandRequest(string Command, string? WorkingDirectory, ShellCommandPhase Phase = ShellCommandPhase.Post);
 public record AddRepositoryRequest(string Name, string LocalPath, string? DefaultBranch);
 public record ReorderRequest(List<Guid> Ids);
+public record BranchInfo(string Name, string? TaskId, string? TaskTitle, string? TaskStatus);

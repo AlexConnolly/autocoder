@@ -1,4 +1,4 @@
-import type { Board, BoardRepository, Column, ColumnShellCommand, ContextEntry, WorkTask } from '../types';
+import type { Board, BoardRepository, BranchInfo, Column, ColumnShellCommand, ContextEntry, WorkTask } from '../types';
 
 const BASE = '/api';
 
@@ -108,3 +108,9 @@ export interface GitRepoResult { name: string; path: string; }
 
 export const findGitRepos = (root?: string) =>
   get<GitRepoResult[]>(`/system/git-repos${root ? `?root=${encodeURIComponent(root)}` : ''}`);
+
+export const fetchBranches = (boardId: string) =>
+  get<BranchInfo[]>(`/boards/${boardId}/branches`);
+
+export const deleteBranch = (boardId: string, name: string) =>
+  del(`/boards/${boardId}/branches?name=${encodeURIComponent(name)}`);
