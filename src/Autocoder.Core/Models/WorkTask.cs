@@ -18,4 +18,5 @@ public class WorkTask
     public DateTime UpdatedAt { get; set; }
     public Board Board { get; set; } = null!;
     public List<ContextEntry> ContextEntries { get; set; } = new();
+    public List<TaskRepository> TaskRepositories { get; set; } = new();
 }

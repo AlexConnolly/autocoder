@@ -65,8 +65,8 @@ export const deleteTask = (taskId: string) =>
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 
-export const updateBoard = (boardId: string, name: string, globalInstructions?: string, maxInProgress?: number | null, cavemanMode = false) =>
-  put<Board>(`/boards/${boardId}`, { name, globalInstructions, maxInProgress, cavemanMode });
+export const updateBoard = (boardId: string, name: string, globalInstructions?: string, maxInProgress?: number | null, cavemanMode?: boolean) =>
+  put<Board>(`/boards/${boardId}`, { name, globalInstructions, maxInProgress, cavemanMode: cavemanMode ?? false });
 
 export const createColumn = (boardId: string, name: string, type: 'Input' | 'Agent') =>
   post<Column>(`/boards/${boardId}/columns`, { name, type });
@@ -83,11 +83,11 @@ export const deleteColumn = (columnId: string) =>
 export const reorderColumns = (boardId: string, ids: string[]) =>
   put<void>(`/boards/${boardId}/columns/reorder`, { ids });
 
-export const addShellCommand = (columnId: string, command: string, workingDirectory?: string) =>
-  post<ColumnShellCommand>(`/columns/${columnId}/shell-commands`, { command, workingDirectory });
+export const addShellCommand = (columnId: string, command: string, workingDirectory?: string, phase: 'Pre' | 'Post' = 'Post') =>
+  post<ColumnShellCommand>(`/columns/${columnId}/shell-commands`, { command, workingDirectory, phase });
 
-export const updateShellCommand = (cmdId: string, command: string, workingDirectory?: string) =>
-  put<ColumnShellCommand>(`/shell-commands/${cmdId}`, { command, workingDirectory });
+export const updateShellCommand = (cmdId: string, command: string, workingDirectory?: string, phase: 'Pre' | 'Post' = 'Post') =>
+  put<ColumnShellCommand>(`/shell-commands/${cmdId}`, { command, workingDirectory, phase });
 
 export const deleteShellCommand = (cmdId: string) =>
   del(`/shell-commands/${cmdId}`);

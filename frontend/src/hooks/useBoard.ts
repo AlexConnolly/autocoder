@@ -14,6 +14,7 @@ const EMPTY_BOARD: import('../types').Board = {
   cavemanMode: false,
   columns: [],
   repositories: [],
+  cavemanMode: false,
 };
 
 export interface BoardState {

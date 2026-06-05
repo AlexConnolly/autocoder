@@ -93,6 +93,7 @@ export default function BoardPage() {
             liveOutputs={liveOutputs}
             onRetry={handleRetry}
             onSelectTask={selectTask}
+            onAnswer={handleAnswer}
           />
         ) : (
           <div className="flex flex-col flex-1 overflow-hidden">

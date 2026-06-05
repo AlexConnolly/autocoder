@@ -201,10 +201,6 @@ function AnswerPanel({ question, onSubmit }: { question: string; onSubmit: (answ
   const [answer, setAnswer] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
-
   const submit = () => {
     if (answer.trim()) {
       onSubmit(answer.trim());

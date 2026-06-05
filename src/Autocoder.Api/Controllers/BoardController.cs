@@ -153,6 +153,7 @@ public class BoardController : ControllerBase
             Command          = req.Command,
             WorkingDirectory = string.IsNullOrWhiteSpace(req.WorkingDirectory) ? null : req.WorkingDirectory,
             Position         = maxPos + 1,
+            Phase            = req.Phase,
         };
         db.ColumnShellCommands.Add(cmd);
         await db.SaveChangesAsync(ct);
@@ -168,6 +169,7 @@ public class BoardController : ControllerBase
 
         cmd.Command          = req.Command;
         cmd.WorkingDirectory = string.IsNullOrWhiteSpace(req.WorkingDirectory) ? null : req.WorkingDirectory;
+        cmd.Phase            = req.Phase;
         await db.SaveChangesAsync(ct);
         return Ok(cmd);
     }
@@ -237,12 +239,12 @@ public class BoardController : ControllerBase
     }
 }
 
-public record UpdateBoardRequest(string Name, string? GlobalInstructions, int? MaxInProgress, bool CavemanMode);
+public record UpdateBoardRequest(string Name, string? GlobalInstructions, int? MaxInProgress, bool CavemanMode = false);
 public record CreateColumnRequest(string Name, ColumnType Type);
 public record UpdateColumnRequest(
     string Name, string? Instructions, string? OutputSchemaHint,
     bool AutoForward, bool AgentEnabled,
     Guid? BackwardTargetColumnId, int TimeoutSeconds, int MaxAgentTurns);
-public record ShellCommandRequest(string Command, string? WorkingDirectory);
+public record ShellCommandRequest(string Command, string? WorkingDirectory, ShellCommandPhase Phase = ShellCommandPhase.Post);
 public record AddRepositoryRequest(string Name, string LocalPath, string? DefaultBranch);
 public record ReorderRequest(List<Guid> Ids);

@@ -3,12 +3,15 @@ export type ColumnType = 'Input' | 'Agent';
 export type TransitionAction = 'Forward' | 'Backward' | 'Ask';
 export type ContextEntryKind = 'AgentOutput' | 'UserAnswer' | 'SystemNote' | 'ShellOutput';
 
+export type ShellCommandPhase = 'Pre' | 'Post';
+
 export interface ColumnShellCommand {
   id: string;
   columnId: string;
   command: string;
   workingDirectory?: string;
   position: number;
+  phase: ShellCommandPhase;
 }
 
 export interface WorkTask {

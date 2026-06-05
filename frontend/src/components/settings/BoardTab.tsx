@@ -19,7 +19,7 @@ export default function BoardTab() {
         name: b.name,
         globalInstructions: b.globalInstructions ?? '',
         maxInProgress: b.maxInProgress != null ? String(b.maxInProgress) : '',
-        cavemanMode: b.cavemanMode ?? false,
+        cavemanMode: b.cavemanMode,
       }))
       .catch(console.error);
   }, []);
@@ -78,17 +78,19 @@ export default function BoardTab() {
       <div>
         <label className="block text-[11px] text-zinc-500 uppercase tracking-widest mb-2">Caveman mode</label>
         <p className="text-[11px] text-zinc-600 mb-2">
-          Instructs agents to use minimal context — prefer targeted lookups, read only specific lines, and keep responses concise.
+          Appends a terse-output system prompt to every agent run, reducing context usage.
         </p>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.cavemanMode}
-            onChange={e => setForm(p => ({ ...p, cavemanMode: e.target.checked }))}
-            className="w-4 h-4 accent-zinc-800 dark:accent-zinc-100"
+        <button
+          type="button"
+          role="switch"
+          aria-checked={form.cavemanMode}
+          onClick={() => setForm(p => ({ ...p, cavemanMode: !p.cavemanMode }))}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.cavemanMode ? 'bg-zinc-800 dark:bg-zinc-100' : 'bg-zinc-300 dark:bg-zinc-600'}`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-zinc-900 transition-transform ${form.cavemanMode ? 'translate-x-6' : 'translate-x-1'}`}
           />
-          <span className="text-sm text-zinc-900 dark:text-zinc-100">Enable caveman mode</span>
-        </label>
+        </button>
       </div>
 
       <div className="pt-2">

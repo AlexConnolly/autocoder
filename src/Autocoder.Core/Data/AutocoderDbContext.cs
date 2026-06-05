@@ -13,6 +13,7 @@ public class AutocoderDbContext : DbContext
     public DbSet<WorkTask> WorkTasks => Set<WorkTask>();
     public DbSet<ContextEntry> ContextEntries => Set<ContextEntry>();
     public DbSet<BoardRepository> Repositories => Set<BoardRepository>();
+    public DbSet<TaskRepository> TaskRepositories => Set<TaskRepository>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -39,8 +40,16 @@ public class AutocoderDbContext : DbContext
         {
             e.HasKey(t => t.Id);
             e.HasMany(t => t.ContextEntries).WithOne(ce => ce.Task).HasForeignKey(ce => ce.TaskId);
+            e.HasMany(t => t.TaskRepositories).WithOne(tr => tr.Task).HasForeignKey(tr => tr.TaskId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
         mb.Entity<ContextEntry>(e => e.HasKey(ce => ce.Id));
         mb.Entity<BoardRepository>(e => e.HasKey(r => r.Id));
+        mb.Entity<TaskRepository>(e =>
+        {
+            e.HasKey(tr => tr.Id);
+            e.HasOne(tr => tr.Repository).WithMany().HasForeignKey(tr => tr.RepositoryId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

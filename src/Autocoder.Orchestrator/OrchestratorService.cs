@@ -78,7 +78,16 @@ public class OrchestratorService : IOrchestrator
             await _db.SaveChangesAsync(ct);
         }
 
-        // ── Phase 1: Worker (optional) ───────────────────────────────────────
+        // ── Phase 1: Pre shell commands ──────────────────────────────────────
+        var preCommands = column.ShellCommands
+            .Where(c => c.Phase == ShellCommandPhase.Pre)
+            .OrderBy(c => c.Position)
+            .ToList();
+
+        if (preCommands.Count > 0)
+            await RunShellCommandsAsync(task, column, preCommands, ct);
+
+        // ── Phase 2: Worker (optional) ───────────────────────────────────────
         string workerOutput = string.Empty;
 
         if (column.AgentEnabled)
@@ -106,16 +115,27 @@ public class OrchestratorService : IOrchestrator
                 return;
             }
 
+            if (IsRateLimited(workerResult.FullOutput))
+            {
+                await SetErrorAsync(task, "Claude API rate limited. Try again later.", ct);
+                return;
+            }
+
             workerOutput = workerResult.FullOutput;
         }
 
-        // ── Phase 2: Shell commands (optional) ───────────────────────────────
+        // ── Phase 3: Post shell commands (optional) ──────────────────────────
         string? shellSummary = null;
         List<ShellCommandResult>? shellResults = null;
 
-        if (column.ShellCommands.Count > 0)
+        var postCommands = column.ShellCommands
+            .Where(c => c.Phase == ShellCommandPhase.Post)
+            .OrderBy(c => c.Position)
+            .ToList();
+
+        if (postCommands.Count > 0)
         {
-            shellResults = await RunShellCommandsAsync(task, column, ct);
+            shellResults = await RunShellCommandsAsync(task, column, postCommands, ct);
             shellSummary = await SummarizeShellResultsAsync(task, column, shellResults, ct);
         }
 
@@ -136,6 +156,30 @@ public class OrchestratorService : IOrchestrator
             return;
         }
 
+        // Save work output now, before the Determiner check, so it's preserved even if routing fails
+        ContextEntry? workerEntry = null;
+        if (column.AgentEnabled && !string.IsNullOrWhiteSpace(workerOutput))
+        {
+            workerEntry = new ContextEntry
+            {
+                Id = Guid.NewGuid(),
+                TaskId = task.Id,
+                Kind = ContextEntryKind.AgentOutput,
+                ColumnId = column.Id,
+                ColumnName = column.Name,
+                Content = workerOutput,
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.ContextEntries.Add(workerEntry);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        if (IsRateLimited(determinerResult.FullOutput))
+        {
+            await SetErrorAsync(task, "Claude API rate limited. Try again later.", ct);
+            return;
+        }
+
         if (determinerResult.StructuredOutput is null)
         {
             var snippet = determinerResult.FullOutput.Length > 3000
@@ -150,21 +194,11 @@ public class OrchestratorService : IOrchestrator
 
         var output = determinerResult.StructuredOutput;
 
-        // Save agent output entry (if agent ran)
-        if (column.AgentEnabled)
+        // Back-fill routing metadata onto the worker entry now that we have it
+        if (workerEntry is not null)
         {
-            _db.ContextEntries.Add(new ContextEntry
-            {
-                Id = Guid.NewGuid(),
-                TaskId = task.Id,
-                Kind = ContextEntryKind.AgentOutput,
-                ColumnId = column.Id,
-                ColumnName = column.Name,
-                Content = workerOutput,
-                StructuredData = output.RawJson,
-                Action = output.Action,
-                CreatedAt = DateTime.UtcNow
-            });
+            workerEntry.StructuredData = output.RawJson;
+            workerEntry.Action = output.Action;
         }
 
         // Save shell output entry (if shell commands ran)
@@ -246,14 +280,14 @@ public class OrchestratorService : IOrchestrator
     }
 
     private async Task<List<ShellCommandResult>> RunShellCommandsAsync(
-        WorkTask task, Column column, CancellationToken ct)
+        WorkTask task, Column column, IEnumerable<ColumnShellCommand> commands, CancellationToken ct)
     {
         var results = new List<ShellCommandResult>();
         var baseDir = task.WorktreePath
             ?? task.Board.Repositories.FirstOrDefault()?.LocalPath
             ?? Directory.GetCurrentDirectory();
 
-        foreach (var cmd in column.ShellCommands.OrderBy(c => c.Position))
+        foreach (var cmd in commands)
         {
             var workDir = cmd.WorkingDirectory is not null
                 ? Path.IsPathRooted(cmd.WorkingDirectory)
@@ -494,6 +528,11 @@ public class OrchestratorService : IOrchestrator
         _db.WorkTasks.Remove(task);
         await _db.SaveChangesAsync(ct);
     }
+
+    private static bool IsRateLimited(string output) =>
+        output.Contains("session limit", StringComparison.OrdinalIgnoreCase) ||
+        output.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ||
+        output.Contains("too many requests", StringComparison.OrdinalIgnoreCase);
 
     private async Task SetErrorAsync(WorkTask task, string message, CancellationToken ct)
     {

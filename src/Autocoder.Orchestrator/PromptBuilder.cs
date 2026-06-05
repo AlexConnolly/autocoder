@@ -181,7 +181,7 @@ public class PromptBuilder
             ColumnId = column.Id,
             ColumnName = column.Name,
             Content = sb.ToString(),
-            MaxTurns = 8,
+            MaxTurns = 1,
             TaskId = task.Id,
             BoardId = task.BoardId,
             WorktreePath = workDir,

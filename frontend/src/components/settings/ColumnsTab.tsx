@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Column, ColumnShellCommand, ColumnType } from '../../types';
+import type { Column, ColumnShellCommand, ColumnType, ShellCommandPhase } from '../../types';
 import * as api from '../../api/client';
 import { cn } from '../../utils/cn';
 
@@ -88,9 +88,9 @@ export default function ColumnsTab() {
 
   // ── Shell command operations ───────────────────────────────────────────────
 
-  const addCmd = async (columnId: string, command: string, workingDir: string) => {
+  const addCmd = async (columnId: string, command: string, workingDir: string, phase: ShellCommandPhase) => {
     try {
-      const cmd = await api.addShellCommand(columnId, command, workingDir || undefined);
+      const cmd = await api.addShellCommand(columnId, command, workingDir || undefined, phase);
       patch(columnId, {
         shellCommands: [...(cols.find(c => c.id === columnId)?.shellCommands ?? []), cmd]
       });
@@ -99,10 +99,10 @@ export default function ColumnsTab() {
     }
   };
 
-  const saveCmd = async (columnId: string, cmdId: string, command: string, workingDir: string) => {
+  const saveCmd = async (columnId: string, cmdId: string, command: string, workingDir: string, phase: ShellCommandPhase) => {
     if (!command.trim()) return;
     try {
-      const updated = await api.updateShellCommand(cmdId, command, workingDir || undefined);
+      const updated = await api.updateShellCommand(cmdId, command, workingDir || undefined, phase);
       patch(columnId, {
         shellCommands: cols.find(c => c.id === columnId)?.shellCommands
           .map(s => s.id === cmdId ? updated : s) ?? []
@@ -231,25 +231,49 @@ export default function ColumnsTab() {
                   </div>
                 </div>
 
-                {/* Shell commands */}
+                {/* Shell commands — Pre */}
                 <div>
-                  <Label>Shell commands</Label>
+                  <Label>Pre-execution commands</Label>
                   <p className="text-[11px] text-zinc-500 mt-0.5 mb-2">
-                    Run after the agent. Output is summarised and feeds into the routing decision.
+                    Run <strong className="text-zinc-400">before</strong> the agent (setup, checkout, install…)
                   </p>
                   <div className="space-y-2">
                     {[...col.shellCommands]
+                      .filter(c => c.phase === 'Pre')
                       .sort((a, b) => a.position - b.position)
                       .map(cmd => (
                         <CmdRow
                           key={cmd.id}
                           cmd={cmd}
-                          onSave={(c, d) => saveCmd(col.id, cmd.id, c, d)}
+                          onSave={(c, d) => saveCmd(col.id, cmd.id, c, d, 'Pre')}
                           onDelete={() => deleteCmd(col.id, cmd.id)}
                         />
                       ))
                     }
-                    <AddCmdForm onAdd={(c, d) => addCmd(col.id, c, d)} />
+                    <AddCmdForm phase="Pre" onAdd={(c, d) => addCmd(col.id, c, d, 'Pre')} />
+                  </div>
+                </div>
+
+                {/* Shell commands — Post */}
+                <div>
+                  <Label>Post-execution commands</Label>
+                  <p className="text-[11px] text-zinc-500 mt-0.5 mb-2">
+                    Run <strong className="text-zinc-400">after</strong> the agent (commit, test, lint…). Output feeds into routing.
+                  </p>
+                  <div className="space-y-2">
+                    {[...col.shellCommands]
+                      .filter(c => c.phase === 'Post')
+                      .sort((a, b) => a.position - b.position)
+                      .map(cmd => (
+                        <CmdRow
+                          key={cmd.id}
+                          cmd={cmd}
+                          onSave={(c, d) => saveCmd(col.id, cmd.id, c, d, 'Post')}
+                          onDelete={() => deleteCmd(col.id, cmd.id)}
+                        />
+                      ))
+                    }
+                    <AddCmdForm phase="Post" onAdd={(c, d) => addCmd(col.id, c, d, 'Post')} />
                   </div>
                 </div>
               </>)}
@@ -362,9 +386,10 @@ function CmdRow({ cmd, onSave, onDelete }: {
   );
 }
 
-function AddCmdForm({ onAdd }: { onAdd: (command: string, workingDir: string) => void }) {
+function AddCmdForm({ onAdd, phase }: { onAdd: (command: string, workingDir: string) => void; phase: ShellCommandPhase }) {
   const [command, setCommand] = useState('');
   const [workDir, setWorkDir] = useState('');
+  const placeholder = phase === 'Pre' ? 'e.g. npm install' : 'e.g. git add -A && git commit -m "wip"';
 
   const submit = () => {
     if (!command.trim()) return;
@@ -381,7 +406,7 @@ function AddCmdForm({ onAdd }: { onAdd: (command: string, workingDir: string) =>
         onChange={e => setCommand(e.target.value)}
         onKeyDown={e => e.key === 'Enter' && submit()}
         className={`${inputCls} flex-1`}
-        placeholder="Add command…"
+        placeholder={placeholder}
       />
       <input
         value={workDir}

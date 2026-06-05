@@ -93,6 +93,9 @@ public class GitService : IGitService
             // Push feature branch to origin (retry 3x)
             await RunGitWithRetryAsync(repo.LocalPath, $"push origin {task.BranchName}", ct);
 
+            // Stash any uncommitted local changes so they don't block the merge
+            await RunGitAsync(repo.LocalPath, "stash --include-untracked -m \"autocoder-pre-merge\"", ct, throwOnError: false);
+
             await RunGitAsync(repo.LocalPath,
                 $"checkout {repo.DefaultBranch}",
                 ct, throwOnError: false);
@@ -107,9 +110,13 @@ public class GitService : IGitService
                     "Merge conflict for {Branch} into {Default} in repo {Repo} — aborting",
                     task.BranchName, repo.DefaultBranch, repo.Name);
                 await RunGitAsync(repo.LocalPath, "merge --abort", ct, throwOnError: false);
+                await RunGitAsync(repo.LocalPath, "stash pop", ct, throwOnError: false);
                 anyConflict = true;
                 continue;
             }
+
+            // Restore any stashed changes after merge
+            await RunGitAsync(repo.LocalPath, "stash pop", ct, throwOnError: false);
 
             // Push default branch to origin (retry 3x)
             await RunGitWithRetryAsync(repo.LocalPath, $"push origin {repo.DefaultBranch}", ct);
