@@ -83,6 +83,7 @@ public class PromptBuilder
             BoardId = task.BoardId,
             WorktreePath = workDir,
             Kind = AgentPromptKind.Worker,
+            CavemanMode = task.Board.CavemanMode,
         };
     }
 

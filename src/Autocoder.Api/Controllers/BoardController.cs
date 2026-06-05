@@ -35,6 +35,7 @@ public class BoardController : ControllerBase
         board.Name = req.Name;
         board.GlobalInstructions = req.GlobalInstructions;
         board.MaxInProgress = req.MaxInProgress;
+        board.CavemanMode = req.CavemanMode;
         await db.SaveChangesAsync(ct);
         return Ok(board);
     }
@@ -236,7 +237,7 @@ public class BoardController : ControllerBase
     }
 }
 
-public record UpdateBoardRequest(string Name, string? GlobalInstructions, int? MaxInProgress);
+public record UpdateBoardRequest(string Name, string? GlobalInstructions, int? MaxInProgress, bool CavemanMode);
 public record CreateColumnRequest(string Name, ColumnType Type);
 public record UpdateColumnRequest(
     string Name, string? Instructions, string? OutputSchemaHint,
