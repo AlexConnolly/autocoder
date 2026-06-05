@@ -12,6 +12,7 @@ export const COL_DONE = 'col-done';
 export const mockBoard: Board = {
   id: BOARD_ID,
   name: 'Main Project',
+  cavemanMode: false,
   globalInstructions:
     'Always follow existing code conventions. Write TypeScript. Use the project\'s existing test framework.',
   columns: [

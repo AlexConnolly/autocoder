@@ -11,6 +11,7 @@ const DEFAULT_BOARD_ID = '10000000-0000-0000-0000-000000000001';
 const EMPTY_BOARD: import('../types').Board = {
   id: DEFAULT_BOARD_ID,
   name: '',
+  cavemanMode: false,
   columns: [],
   repositories: [],
 };
