@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from '../api/client';
 import { mockBoard, mockContextEntries, mockLiveOutputs, mockTasks } from '../api/mockData';
-import type { Board, ContextEntry, WorkTask } from '../types';
+import type { Board, ContextEntry, TaskRepositoryConfig, WorkTask } from '../types';
 import { useNotifications } from './useNotifications';
 import { useSignalR } from './useSignalR';
 
@@ -14,7 +14,6 @@ const EMPTY_BOARD: import('../types').Board = {
   cavemanMode: false,
   columns: [],
   repositories: [],
-  cavemanMode: false,
 };
 
 export interface BoardState {
@@ -33,7 +32,7 @@ export interface BoardState {
   handleApprove: (taskId: string) => void;
   handleRetry: (taskId: string) => void;
   handleDeleteTask: (taskId: string) => void;
-  handleCreateTask: (title: string, description?: string) => void;
+  handleCreateTask: (title: string, description: string, repositories?: TaskRepositoryConfig[]) => void;
 }
 
 export function useBoard(boardId = DEFAULT_BOARD_ID): BoardState {
@@ -181,7 +180,7 @@ export function useBoard(boardId = DEFAULT_BOARD_ID): BoardState {
     }
   }, []);
 
-  const handleCreateTask = useCallback((title: string, description?: string) => {
+  const handleCreateTask = useCallback((title: string, description: string, repositories?: TaskRepositoryConfig[]) => {
     setIsCreateModalOpen(false);
 
     if (USE_MOCK) {
@@ -199,7 +198,7 @@ export function useBoard(boardId = DEFAULT_BOARD_ID): BoardState {
       return;
     }
 
-    api.createTask(boardId, title, description)
+    api.createTask(boardId, title, description, repositories)
       .then(task => setTasks(prev => [task, ...prev]))
       .catch(console.error);
   }, [boardId]);

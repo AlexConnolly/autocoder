@@ -33,12 +33,13 @@ public class TaskController : ControllerBase
     {
         var board = await db.Boards
             .Include(b => b.Columns.OrderBy(c => c.Position))
+            .Include(b => b.Repositories)
             .FirstOrDefaultAsync(b => b.Id == boardId, ct);
 
         if (board is null) return NotFound("Board not found.");
 
-        var firstAgentColumn = board.Columns.FirstOrDefault(c => c.Type == ColumnType.Agent);
-        if (firstAgentColumn is null) return BadRequest("Board has no agent columns.");
+        var firstColumn = board.Columns.FirstOrDefault();
+        if (firstColumn is null) return BadRequest("Board has no columns.");
 
         var task = new WorkTask
         {
@@ -46,16 +47,53 @@ public class TaskController : ControllerBase
             BoardId         = boardId,
             Title           = req.Title,
             Description     = req.Description,
-            CurrentColumnId = firstAgentColumn.Id,
-            Status          = WorkTaskStatus.Waiting,
+            CurrentColumnId = firstColumn.Id,
+            Status          = firstColumn.Type == ColumnType.Agent ? WorkTaskStatus.Waiting : WorkTaskStatus.PendingApproval,
             CreatedAt       = DateTime.UtcNow,
             UpdatedAt       = DateTime.UtcNow,
         };
 
         db.WorkTasks.Add(task);
+
+        if (board.Repositories.Count > 0)
+        {
+            var slug = GenerateBranchSlug(req.Title);
+            string? firstEnabledBranch = null;
+
+            foreach (var repo in board.Repositories)
+            {
+                var config = req.Repositories?.FirstOrDefault(r => r.RepositoryId == repo.Id);
+                var branchName = !string.IsNullOrWhiteSpace(config?.BranchName)
+                    ? config.BranchName
+                    : $"autocoder/{slug}";
+                var isEnabled = config?.IsEnabled ?? true;
+
+                if (isEnabled) firstEnabledBranch ??= branchName;
+
+                db.TaskRepositories.Add(new TaskRepository
+                {
+                    Id           = Guid.NewGuid(),
+                    TaskId       = task.Id,
+                    RepositoryId = repo.Id,
+                    BranchName   = branchName,
+                    IsEnabled    = isEnabled,
+                });
+            }
+
+            task.BranchName = firstEnabledBranch;
+        }
+
         await db.SaveChangesAsync(ct);
 
         return CreatedAtAction(nameof(ListTasks), new { boardId }, task);
+    }
+
+    private static string GenerateBranchSlug(string title)
+    {
+        var slug = System.Text.RegularExpressions.Regex.Replace(
+                title.ToLowerInvariant(), @"[^a-z0-9]+", "-")
+            .Trim('-');
+        return slug.Length > 50 ? slug[..50].TrimEnd('-') : slug;
     }
 
     [HttpGet("api/tasks/{id:guid}/context")]
@@ -133,5 +171,6 @@ public class TaskController : ControllerBase
     }
 }
 
-public record CreateTaskRequest(string Title, string? Description);
+public record CreateTaskRequest(string Title, string Description, List<TaskRepositoryConfig>? Repositories = null);
+public record TaskRepositoryConfig(Guid RepositoryId, string? BranchName, bool IsEnabled = true);
 public record AnswerRequest(string Text);

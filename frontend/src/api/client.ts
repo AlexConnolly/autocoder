@@ -1,4 +1,4 @@
-import type { Board, BoardRepository, BranchInfo, Column, ColumnShellCommand, ContextEntry, WorkTask } from '../types';
+import type { Board, BoardRepository, BranchInfo, Column, ColumnShellCommand, ContextEntry, TaskRepositoryConfig, WorkTask } from '../types';
 
 const BASE = '/api';
 
@@ -48,8 +48,8 @@ export const fetchContextEntries = (taskId: string) =>
 
 // ── Tasks ─────────────────────────────────────────────────────────────────────
 
-export const createTask = (boardId: string, title: string, description?: string) =>
-  post<WorkTask>(`/boards/${boardId}/tasks`, { title, description });
+export const createTask = (boardId: string, title: string, description: string, repositories?: TaskRepositoryConfig[]) =>
+  post<WorkTask>(`/boards/${boardId}/tasks`, { title, description, repositories });
 
 export const submitAnswer = (taskId: string, text: string) =>
   post<void>(`/tasks/${taskId}/answer`, { text });
@@ -111,6 +111,9 @@ export const findGitRepos = (root?: string) =>
 
 export const fetchBranches = (boardId: string) =>
   get<BranchInfo[]>(`/boards/${boardId}/branches`);
+
+export const fetchRepoBranches = (repoId: string) =>
+  get<string[]>(`/repositories/${repoId}/branches`);
 
 export const deleteBranch = (boardId: string, name: string) =>
   del(`/boards/${boardId}/branches?name=${encodeURIComponent(name)}`);
