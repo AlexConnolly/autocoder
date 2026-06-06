@@ -100,9 +100,9 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, repositorie
         const state = prev[r.id];
         if (!state) return;
         // Only auto-update if it still matches the auto-generated pattern or is empty
-        const wasAuto = state.branchName === '' || state.branchName.startsWith('autocoder/');
+        const wasAuto = state.branchName === '' || state.branchName.startsWith('auto/');
         if (wasAuto) {
-          next[r.id] = { ...state, branchName: slug ? `autocoder/${slug}` : '' };
+          next[r.id] = { ...state, branchName: slug ? `auto/${slug}` : '' };
         }
       });
       return next;
@@ -122,7 +122,7 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, repositorie
       const state = repoStates[r.id];
       return {
         repositoryId: r.id,
-        branchName: state?.branchName || `autocoder/${slugify(title.trim())}`,
+        branchName: state?.branchName || `auto/${slugify(title.trim())}`,
         isEnabled: state?.isEnabled ?? true,
       };
     });
@@ -223,7 +223,7 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, repositorie
                         onFocus={() => updateRepo(repo.id, { showSuggestions: true })}
                         onBlur={() => setTimeout(() => updateRepo(repo.id, { showSuggestions: false }), 150)}
                         disabled={!state.isEnabled}
-                        placeholder={`autocoder/${slugify(title) || 'branch-name'}`}
+                        placeholder={`auto/${slugify(title) || 'branch-name'}`}
                         className="w-full bg-[var(--color-bg)] border border-zinc-300 dark:border-zinc-700 rounded px-2 py-1 text-xs font-mono text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-brand-500 disabled:opacity-40 transition-colors"
                       />
                       {state.showSuggestions && filtered.length > 0 && (

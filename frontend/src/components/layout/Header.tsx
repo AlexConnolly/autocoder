@@ -60,9 +60,6 @@ function LogoMark() {
         </linearGradient>
       </defs>
       <rect className="logo-block logo-block-0" x="1" y="1" width="7" height="7" rx="1.5" fill="url(#logo-grad)" />
-      <path d="M 3,3.5 L 1.75,4.5 L 3,5.5" stroke="rgba(255,255,255,0.65)" strokeWidth="0.75" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <path d="M 3.8,5.8 L 4.8,3.2" stroke="rgba(255,255,255,0.65)" strokeWidth="0.75" strokeLinecap="round" fill="none" />
-      <path d="M 5.5,3.5 L 6.75,4.5 L 5.5,5.5" stroke="rgba(255,255,255,0.65)" strokeWidth="0.75" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <rect className="logo-block logo-block-1" x="10" y="1" width="7" height="7" rx="1.5" fill="url(#logo-grad)" />
       <rect className="logo-block logo-block-2" x="1" y="10" width="7" height="7" rx="1.5" fill="url(#logo-grad)" />
       <rect className="logo-block logo-block-3" x="10" y="10" width="7" height="7" rx="1.5" fill="url(#logo-grad)" />
@@ -76,7 +73,7 @@ export default function Header({ board, onNewTask }: Props) {
       {/* Brand */}
       <div className="flex items-center gap-2 select-none">
         <LogoMark />
-        <span className="text-zinc-900 dark:text-zinc-100 text-sm font-semibold tracking-tight">autocoder</span>
+        <span className="text-zinc-900 dark:text-zinc-100 text-sm font-semibold tracking-tight">auto</span>
       </div>
 
       <div className="w-px h-4 bg-zinc-300 dark:bg-zinc-800" />

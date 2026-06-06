@@ -199,7 +199,7 @@ public class GitService : IGitService
         {
             if (!Directory.Exists(repo.LocalPath)) continue;
 
-            var output = await RunGitOutputAsync(repo.LocalPath, "branch --list \"autocoder/*\"", ct);
+            var output = await RunGitOutputAsync(repo.LocalPath, "branch --list \"auto/*\"", ct);
             foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
             {
                 var name = line.Trim().TrimStart('*').Trim();

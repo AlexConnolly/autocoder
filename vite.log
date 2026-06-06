@@ -7,3 +7,37 @@
 
   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
 [2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m08:37:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx[22m
+[2m08:37:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx, /src/components/settings/BranchesTab.tsx[22m
+[2m08:37:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx[22m
+[2m08:37:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx, /src/components/settings/BranchesTab.tsx[22m
+[2m08:42:08[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m08:42:08[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m08:42:11[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m08:43:19[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2msrc/types/index.ts[22m
+[2m08:43:23[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx, /src/components/settings/BoardTab.tsx, /src/components/settings/BranchesTab.tsx, /src/components/settings/RepositoriesTab.tsx, /src/components/settings/ColumnsTab.tsx[22m
+[2m08:43:27[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx, /src/components/settings/BoardTab.tsx, /src/components/settings/BranchesTab.tsx, /src/components/settings/RepositoriesTab.tsx, /src/components/settings/ColumnsTab.tsx[22m
+[2m08:43:31[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx, /src/components/settings/BoardTab.tsx, /src/components/settings/BranchesTab.tsx, /src/components/settings/RepositoriesTab.tsx, /src/components/settings/ColumnsTab.tsx[22m
+[2m08:43:38[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx[22m
+[2m08:43:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx[22m
+[2m08:43:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx[22m
+[2m08:44:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m08:44:38[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/BoardPage.tsx, /src/index.css[22m
+[2m08:44:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m09:18:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx, /src/components/settings/BoardTab.tsx, /src/components/settings/BranchesTab.tsx, /src/components/settings/RepositoriesTab.tsx, /src/components/settings/ColumnsTab.tsx, /src/modals/CreateTaskModal.tsx[22m
+[2m09:18:46[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx[22m
+[2m09:18:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx[22m
+[2m09:18:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m09:18:59[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m09:19:03[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m09:19:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m09:19:20[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m09:19:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m

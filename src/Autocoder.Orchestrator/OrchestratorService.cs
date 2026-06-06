@@ -290,7 +290,7 @@ public class OrchestratorService : IOrchestrator
                 title.ToLowerInvariant(), @"[^a-z0-9]+", "-")
             .Trim('-');
         if (slug.Length > 50) slug = slug[..50].TrimEnd('-');
-        return $"autocoder/{slug}";
+        return $"auto/{slug}";
     }
 
     private async Task<List<ShellCommandResult>> RunShellCommandsAsync(

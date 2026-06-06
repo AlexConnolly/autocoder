@@ -76,9 +76,9 @@ export default function BranchesTab() {
   if (branches.length === 0) {
     return (
       <div className="max-w-xl">
-        <p className="text-sm text-zinc-500">No autocoder branches found.</p>
+        <p className="text-sm text-zinc-500">No auto branches found.</p>
         <p className="text-[12px] text-zinc-600 mt-1">
-          Branches are created automatically when tasks run and are prefixed with <code className="font-mono">autocoder/</code>.
+          Branches are created automatically when tasks run and are prefixed with <code className="font-mono">auto/</code>.
         </p>
       </div>
     );

@@ -65,7 +65,7 @@ public class TaskController : ControllerBase
                 var config = req.Repositories?.FirstOrDefault(r => r.RepositoryId == repo.Id);
                 var branchName = !string.IsNullOrWhiteSpace(config?.BranchName)
                     ? config.BranchName
-                    : $"autocoder/{slug}";
+                    : $"auto/{slug}";
                 var isEnabled = config?.IsEnabled ?? true;
 
                 if (isEnabled) firstEnabledBranch ??= branchName;

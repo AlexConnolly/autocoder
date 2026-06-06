@@ -278,8 +278,8 @@ public class BoardController : ControllerBase
     public async Task<IActionResult> DeleteBranch(
         Guid boardId, [FromQuery] string name, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(name) || !name.StartsWith("autocoder/"))
-            return BadRequest("Only autocoder/ branches can be deleted.");
+        if (string.IsNullOrWhiteSpace(name) || !name.StartsWith("auto/"))
+            return BadRequest("Only auto/ branches can be deleted.");
 
         var repos = await db.Repositories.Where(r => r.BoardId == boardId).ToListAsync(ct);
         await gitService.DeleteBranchAsync(name, repos, ct);

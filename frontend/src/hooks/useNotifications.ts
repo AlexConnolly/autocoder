@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'autocoder_notifications_enabled';
+const STORAGE_KEY = 'auto_notifications_enabled';
 
 const isSupported = typeof Notification !== 'undefined';
 
