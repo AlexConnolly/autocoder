@@ -6,6 +6,7 @@ interface Props {
   active: MobileTab;
   attentionCount: number;
   onChange: (tab: MobileTab) => void;
+  onNewTask: () => void;
 }
 
 function FocusIcon() {
@@ -27,7 +28,15 @@ function BoardIcon() {
   );
 }
 
-export default function BottomNav({ active, attentionCount, onChange }: Props) {
+function PlusIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export default function BottomNav({ active, attentionCount, onChange, onNewTask }: Props) {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-surface/95 backdrop-blur-sm border-t border-border shadow-[0_-1px_0_rgb(var(--color-border))] flex items-center z-20">
       <TabButton
@@ -37,6 +46,14 @@ export default function BottomNav({ active, attentionCount, onChange }: Props) {
         active={active === 'focus'}
         onClick={() => onChange('focus')}
       />
+      <button
+        onClick={onNewTask}
+        className="flex flex-col items-center justify-center gap-0.5 py-2 px-5 min-h-[44px] min-w-[44px] text-white bg-brand-500 hover:bg-brand-600 rounded-full transition-colors mx-2"
+        title="New task (N)"
+      >
+        <PlusIcon />
+        <span className="text-[11px] font-medium">New</span>
+      </button>
       <TabButton
         label="Board"
         icon={<BoardIcon />}

@@ -122,7 +122,7 @@ export default function BoardPage() {
         )}
       </div>
 
-      <BottomNav active={mobileTab} attentionCount={attentionCount} onChange={setMobileTab} />
+      <BottomNav active={mobileTab} attentionCount={attentionCount} onChange={setMobileTab} onNewTask={openCreateModal} />
 
       <TaskDetailDrawer
         task={selectedTask}

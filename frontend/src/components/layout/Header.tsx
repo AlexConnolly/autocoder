@@ -86,7 +86,7 @@ export default function Header({ board, onNewTask }: Props) {
       {/* Actions */}
       <button
         onClick={onNewTask}
-        className="flex items-center gap-1.5 text-sm text-white bg-brand-500 hover:bg-brand-600 border-0 rounded px-2.5 py-1 transition-colors"
+        className="hidden md:flex items-center gap-1.5 text-sm text-white bg-brand-500 hover:bg-brand-600 border-0 rounded px-2.5 py-1 transition-colors"
         title="New task (N)"
       >
         <PlusIcon />
