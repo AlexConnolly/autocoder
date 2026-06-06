@@ -41,3 +41,93 @@ AggregateError [ECONNREFUSED]:
 [2m09:19:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
 [2m09:19:20[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
 [2m09:19:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m09:29:39[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m09:29:47[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/Header.tsx, /src/index.css[22m
+[2m09:29:56[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/Header.tsx, /src/index.css[22m
+[2m09:30:01[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/settings/BranchesTab.tsx, /src/index.css[22m
+[2m09:30:04[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/BoardPage.tsx, /src/components/settings/NotificationsTab.tsx[22m
+[2m09:30:20[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/modals/CreateTaskModal.tsx, /src/index.css[22m
+[2m09:33:05[22m [31m[1m[vite][22m[39m [31mws proxy error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m09:33:05[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:08[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:19[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:27[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/boards/10000000-0000-0000-0000-000000000001[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/boards/10000000-0000-0000-0000-000000000001/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/boards/10000000-0000-0000-0000-000000000001/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:28[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/boards/10000000-0000-0000-0000-000000000001[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:29[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/boards/10000000-0000-0000-0000-000000000001[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:29[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:29[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/boards/10000000-0000-0000-0000-000000000001/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:29[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:29[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/boards/10000000-0000-0000-0000-000000000001[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:29[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/boards/10000000-0000-0000-0000-000000000001/tasks[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:33:50[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /hubs/orchestrator/negotiate?negotiateVersion=1[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1142:49)
+    at afterConnectMultiple (node:net:1723:7)
+[2m09:43:21[22m [31m[1m[vite][22m[39m [31mws proxy socket error:[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m09:43:56[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/BottomNav.tsx, /src/index.css[22m
+[2m09:44:05[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/BottomNav.tsx, /src/index.css[22m
+[2m09:44:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/Header.tsx, /src/index.css[22m
+[2m09:44:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/BoardPage.tsx, /src/index.css[22m
+[2m09:44:27[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/BoardPage.tsx, /src/index.css[22m
+[2m09:44:27[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/BottomNav.tsx, /src/index.css[22m
+[2m09:44:27[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/Header.tsx, /src/index.css[22m
+[2m09:45:16[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/BottomNav.tsx, /src/index.css[22m
+[2m19:41:31[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/layout/Header.tsx, /src/index.css[22m
+[2m19:41:39[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/BoardPage.tsx, /src/index.css[22m
