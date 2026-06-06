@@ -18,19 +18,37 @@ public class GitService : IGitService
 
     public async Task SetupWorktreeAsync(WorkTask task, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(task.BranchName))
-        {
-            _logger.LogWarning("SetupWorktreeAsync called with no branch name on task {Id}", task.Id);
-            return;
-        }
-
         var repos = task.Board?.Repositories;
         if (repos is null or { Count: 0 }) return;
+
+        // Per-repo branch map from TaskRepository rows (enabled only)
+        var repoBranchMap = task.TaskRepositories
+            .Where(tr => tr.IsEnabled)
+            .ToDictionary(tr => tr.RepositoryId, tr => tr.BranchName);
+        var hasTaskRepos = task.TaskRepositories.Count > 0;
 
         string? firstWorktreePath = null;
 
         foreach (var repo in repos)
         {
+            string? branchName;
+            if (hasTaskRepos)
+            {
+                if (!repoBranchMap.TryGetValue(repo.Id, out branchName))
+                    continue; // repo is disabled
+            }
+            else
+            {
+                // Legacy: single branch name for all repos
+                branchName = task.BranchName;
+            }
+
+            if (string.IsNullOrWhiteSpace(branchName))
+            {
+                _logger.LogWarning("SetupWorktreeAsync: no branch name for repo {Repo} on task {Id}", repo.Name, task.Id);
+                continue;
+            }
+
             if (!Directory.Exists(repo.LocalPath))
             {
                 _logger.LogWarning("Repository path does not exist: {Path}", repo.LocalPath);
@@ -42,12 +60,12 @@ public class GitService : IGitService
 
             // Create branch from default branch (ignore error if branch already exists)
             await RunGitAsync(repo.LocalPath,
-                $"branch {task.BranchName} origin/{repo.DefaultBranch}",
+                $"branch {branchName} origin/{repo.DefaultBranch}",
                 ct, throwOnError: false);
 
             // Fallback: branch from local default branch
             await RunGitAsync(repo.LocalPath,
-                $"branch {task.BranchName} {repo.DefaultBranch}",
+                $"branch {branchName} {repo.DefaultBranch}",
                 ct, throwOnError: false);
 
             if (!Directory.Exists(worktreeDir))
@@ -55,14 +73,14 @@ public class GitService : IGitService
                 // throwOnError: false — if the branch is already checked out elsewhere the task
                 // will run in the main repo dir rather than crashing entirely
                 await RunGitAsync(repo.LocalPath,
-                    $"worktree add \"{worktreeDir}\" {task.BranchName}",
+                    $"worktree add \"{worktreeDir}\" {branchName}",
                     ct, throwOnError: false);
 
                 if (!Directory.Exists(worktreeDir))
                 {
                     _logger.LogWarning(
                         "Worktree dir not created for task {Id} branch {Branch} — agent will run in repo root",
-                        task.Id, task.BranchName);
+                        task.Id, branchName);
                     continue;
                 }
             }
@@ -75,15 +93,31 @@ public class GitService : IGitService
 
     public async Task<bool> PushAndMergeAsync(WorkTask task, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(task.BranchName)) return true;
-
         var repos = task.Board?.Repositories;
         if (repos is null or { Count: 0 }) return true;
+
+        var repoBranchMap = task.TaskRepositories
+            .Where(tr => tr.IsEnabled)
+            .ToDictionary(tr => tr.RepositoryId, tr => tr.BranchName);
+        var hasTaskRepos = task.TaskRepositories.Count > 0;
 
         var anyConflict = false;
 
         foreach (var repo in repos)
         {
+            string? branchName;
+            if (hasTaskRepos)
+            {
+                if (!repoBranchMap.TryGetValue(repo.Id, out branchName))
+                    continue; // repo is disabled
+            }
+            else
+            {
+                branchName = task.BranchName;
+            }
+
+            if (string.IsNullOrWhiteSpace(branchName)) continue;
+
             if (!Directory.Exists(repo.LocalPath))
             {
                 _logger.LogWarning("Repository path does not exist: {Path}", repo.LocalPath);
@@ -91,24 +125,24 @@ public class GitService : IGitService
             }
 
             // Push feature branch to origin (retry 3x)
-            await RunGitWithRetryAsync(repo.LocalPath, $"push origin {task.BranchName}", ct);
+            await RunGitWithRetryAsync(repo.LocalPath, $"push origin {branchName}", ct);
 
-            // Stash any uncommitted local changes so they don't block the merge
-            await RunGitAsync(repo.LocalPath, "stash --include-untracked -m \"autocoder-pre-merge\"", ct, throwOnError: false);
+            // Stash tracked changes only — --include-untracked can fail on locked files (e.g. api.log)
+            await RunGitAsync(repo.LocalPath, "stash -m \"autocoder-pre-merge\"", ct, throwOnError: false);
 
             await RunGitAsync(repo.LocalPath,
                 $"checkout {repo.DefaultBranch}",
                 ct, throwOnError: false);
 
             var exitCode = await RunGitAsync(repo.LocalPath,
-                $"merge --no-ff {task.BranchName} -m \"Merge branch '{task.BranchName}'\"",
+                $"merge --no-ff {branchName} -m \"Merge branch '{branchName}'\"",
                 ct, throwOnError: false, returnExitCode: true);
 
             if (exitCode != 0)
             {
                 _logger.LogWarning(
                     "Merge conflict for {Branch} into {Default} in repo {Repo} — aborting",
-                    task.BranchName, repo.DefaultBranch, repo.Name);
+                    branchName, repo.DefaultBranch, repo.Name);
                 await RunGitAsync(repo.LocalPath, "merge --abort", ct, throwOnError: false);
                 await RunGitAsync(repo.LocalPath, "stash pop", ct, throwOnError: false);
                 anyConflict = true;
@@ -140,6 +174,21 @@ public class GitService : IGitService
                 $"worktree remove \"{worktreeDir}\" --force",
                 ct, throwOnError: false);
         }
+    }
+
+    public async Task<List<string>> ListBranchesAsync(BoardRepository repo, CancellationToken ct = default)
+    {
+        if (!Directory.Exists(repo.LocalPath)) return new List<string>();
+
+        var output = await RunGitOutputAsync(repo.LocalPath, "branch --list", ct);
+        var branches = new List<string>();
+        foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var name = line.Trim().TrimStart('*').Trim();
+            if (!string.IsNullOrEmpty(name))
+                branches.Add(name);
+        }
+        return branches.OrderBy(b => b).ToList();
     }
 
     public async Task<List<string>> ListAutocoderBranchesAsync(IEnumerable<BoardRepository> repos, CancellationToken ct = default)

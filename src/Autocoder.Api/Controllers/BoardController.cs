@@ -240,6 +240,15 @@ public class BoardController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("/api/repositories/{repoId:guid}/branches")]
+    public async Task<ActionResult<List<string>>> GetRepoBranches(Guid repoId, CancellationToken ct)
+    {
+        var repo = await db.Repositories.FindAsync(new object[] { repoId }, ct);
+        if (repo is null) return NotFound();
+        var branches = await gitService.ListBranchesAsync(repo, ct);
+        return Ok(branches);
+    }
+
     // ── Branches ──────────────────────────────────────────────────────────────
 
     [HttpGet("{boardId:guid}/branches")]

@@ -81,3 +81,9 @@ export interface BranchInfo {
   taskTitle?: string;
   taskStatus?: string;
 }
+
+export interface TaskRepositoryConfig {
+  repositoryId: string;
+  branchName: string;
+  isEnabled: boolean;
+}

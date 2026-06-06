@@ -139,6 +139,7 @@ export default function BoardPage() {
         isOpen={isCreateModalOpen}
         onClose={closeCreateModal}
         onCreate={handleCreateTask}
+        repositories={board.repositories}
       />
     </div>
   );

@@ -66,6 +66,19 @@ using (var scope = app.Services.CreateScope())
     try { db.Database.ExecuteSqlRaw("ALTER TABLE ColumnShellCommands ADD COLUMN Phase INTEGER NOT NULL DEFAULT 1"); }
     catch { /* column already exists */ }
 
+    db.Database.ExecuteSqlRaw("""
+        CREATE TABLE IF NOT EXISTS TaskRepositories (
+            Id TEXT NOT NULL,
+            TaskId TEXT NOT NULL,
+            RepositoryId TEXT NOT NULL,
+            BranchName TEXT NOT NULL,
+            IsEnabled INTEGER NOT NULL DEFAULT 1,
+            CONSTRAINT PK_TaskRepositories PRIMARY KEY (Id),
+            CONSTRAINT FK_TaskRepositories_WorkTasks_TaskId FOREIGN KEY (TaskId) REFERENCES WorkTasks (Id) ON DELETE CASCADE,
+            CONSTRAINT FK_TaskRepositories_Repositories_RepositoryId FOREIGN KEY (RepositoryId) REFERENCES Repositories (Id) ON DELETE CASCADE
+        )
+    """);
+
     // Reset tasks that were Running when the server last shut down
     var stuckTasks = db.WorkTasks.Where(t => t.Status == WorkTaskStatus.Running).ToList();
     foreach (var t in stuckTasks)

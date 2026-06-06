@@ -111,6 +111,20 @@ public class OrchestratorService : IOrchestrator
 
             if (workerResult.TimedOut)
             {
+                if (!string.IsNullOrWhiteSpace(workerResult.FullOutput))
+                {
+                    _db.ContextEntries.Add(new ContextEntry
+                    {
+                        Id = Guid.NewGuid(),
+                        TaskId = task.Id,
+                        Kind = ContextEntryKind.AgentOutput,
+                        ColumnId = column.Id,
+                        ColumnName = column.Name,
+                        Content = workerResult.FullOutput,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await _db.SaveChangesAsync(ct);
+                }
                 await SetErrorAsync(task, $"Worker agent timed out after {column.TimeoutSeconds} seconds.", ct);
                 return;
             }
@@ -415,17 +429,29 @@ public class OrchestratorService : IOrchestrator
                 $"Task is not pending approval (status: {task.Status}).");
 
         var orderedCols = task.Board.Columns.OrderBy(c => c.Position).ToList();
-        var current = orderedCols.First(c => c.Id == task.CurrentColumnId);
-        task.Status = current.Type == ColumnType.Input
-            ? WorkTaskStatus.Done
-            : WorkTaskStatus.Waiting;
+        var currentIdx = orderedCols.FindIndex(c => c.Id == task.CurrentColumnId);
+        var current = orderedCols[currentIdx];
+        var isLastColumn = currentIdx >= orderedCols.Count - 1;
+
+        if (current.Type == ColumnType.Input && !isLastColumn)
+        {
+            // Non-terminal Input column (e.g. To Do) — move to next column
+            var next = orderedCols[currentIdx + 1];
+            task.CurrentColumnId = next.Id;
+            task.Status = next.Type == ColumnType.Agent ? WorkTaskStatus.Waiting : WorkTaskStatus.PendingApproval;
+        }
+        else
+        {
+            task.Status = current.Type == ColumnType.Input
+                ? WorkTaskStatus.Done
+                : WorkTaskStatus.Waiting;
+        }
 
         task.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         if (task.Status == WorkTaskStatus.Done && task.BranchName is not null)
         {
-            var currentIdx = orderedCols.FindIndex(c => c.Id == task.CurrentColumnId);
             var lastAgentCol = orderedCols.Take(currentIdx).LastOrDefault(c => c.Type == ColumnType.Agent);
             if (lastAgentCol is not null)
                 await TryPushAndMergeAsync(task, lastAgentCol, orderedCols, ct);

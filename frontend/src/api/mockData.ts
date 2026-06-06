@@ -15,7 +15,6 @@ export const mockBoard: Board = {
   cavemanMode: false,
   globalInstructions:
     'Always follow existing code conventions. Write TypeScript. Use the project\'s existing test framework.',
-  cavemanMode: false,
   columns: [
     { id: COL_TODO,     boardId: BOARD_ID, name: 'To Do',            type: 'Input', position: 0, autoForward: false, agentEnabled: false, timeoutSeconds: 0,   maxAgentTurns: 0  },
     { id: COL_SPEC,     boardId: BOARD_ID, name: 'In Specification', type: 'Agent', position: 1, autoForward: false, agentEnabled: true,  timeoutSeconds: 300, maxAgentTurns: 10,
