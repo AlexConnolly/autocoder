@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppearanceTab from '../components/settings/AppearanceTab';
 import BoardTab from '../components/settings/BoardTab';
+import BranchesTab from '../components/settings/BranchesTab';
 import ColumnsTab from '../components/settings/ColumnsTab';
 import NotificationsTab from '../components/settings/NotificationsTab';
 import RepositoriesTab from '../components/settings/RepositoriesTab';
 import { cn } from '../utils/cn';
 
-type Tab = 'repositories' | 'board' | 'columns' | 'appearance' | 'notifications';
+type Tab = 'repositories' | 'branches' | 'board' | 'columns' | 'appearance' | 'notifications';
 
 const mobileLabel: Record<Tab, string> = {
   repositories: 'Repos',
+  branches: 'Branches',
   board: 'Board',
   columns: 'Columns',
   appearance: 'Looks',
@@ -43,7 +45,7 @@ export default function SettingsPage() {
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Mobile tab strip */}
         <div className="sm:hidden flex border-b border-border bg-[var(--color-bg)]">
-          {(['repositories', 'board', 'columns', 'appearance', 'notifications'] as Tab[]).map(tab => (
+          {(['repositories', 'branches', 'board', 'columns', 'appearance', 'notifications'] as Tab[]).map(tab => (
             <button
               key={tab}
               onClick={() => setActive(tab)}
@@ -63,7 +65,7 @@ export default function SettingsPage() {
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar nav */}
           <nav className="w-44 flex-none border-r border-border p-3 space-y-1 hidden sm:block">
-            {(['repositories', 'board', 'columns', 'appearance', 'notifications'] as Tab[]).map(tab => (
+            {(['repositories', 'branches', 'board', 'columns', 'appearance', 'notifications'] as Tab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActive(tab)}
@@ -85,6 +87,7 @@ export default function SettingsPage() {
               {active}
             </h1>
             {active === 'repositories'   && <RepositoriesTab />}
+            {active === 'branches'       && <BranchesTab />}
             {active === 'board'          && <BoardTab />}
             {active === 'columns'        && <ColumnsTab />}
             {active === 'appearance'     && <AppearanceTab />}

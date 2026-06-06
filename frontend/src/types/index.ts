@@ -74,3 +74,10 @@ export interface ContextEntry {
   action?: TransitionAction;
   createdAt: string;
 }
+
+export interface BranchInfo {
+  name: string;
+  taskId?: string;
+  taskTitle?: string;
+  taskStatus?: string;
+}

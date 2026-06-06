@@ -142,6 +142,37 @@ public class GitService : IGitService
         }
     }
 
+    public async Task<List<string>> ListAutocoderBranchesAsync(IEnumerable<BoardRepository> repos, CancellationToken ct = default)
+    {
+        var branches = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var repo in repos)
+        {
+            if (!Directory.Exists(repo.LocalPath)) continue;
+
+            var output = await RunGitOutputAsync(repo.LocalPath, "branch --list \"autocoder/*\"", ct);
+            foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var name = line.Trim().TrimStart('*').Trim();
+                if (!string.IsNullOrEmpty(name))
+                    branches.Add(name);
+            }
+        }
+
+        return branches.OrderBy(b => b).ToList();
+    }
+
+    public async Task DeleteBranchAsync(string branchName, IEnumerable<BoardRepository> repos, CancellationToken ct = default)
+    {
+        foreach (var repo in repos)
+        {
+            if (!Directory.Exists(repo.LocalPath)) continue;
+
+            await RunGitAsync(repo.LocalPath, $"branch -D \"{branchName}\"", ct, throwOnError: false);
+            await RunGitAsync(repo.LocalPath, $"push origin --delete \"{branchName}\"", ct, throwOnError: false);
+        }
+    }
+
     private string GetWorktreePath(Guid taskId, string repoName) =>
         Path.Combine(_worktreeBaseDir, taskId.ToString(), repoName);
 
@@ -160,6 +191,27 @@ public class GitService : IGitService
             _logger.LogWarning("git {Args} failed (attempt {A}/{Max}), retrying in {D}ms", args, attempt, maxAttempts, delayMs);
             await Task.Delay(delayMs, ct);
         }
+    }
+
+    private async Task<string> RunGitOutputAsync(string repoPath, string args, CancellationToken ct)
+    {
+        _logger.LogDebug("git -C \"{Repo}\" {Args} [capturing output]", repoPath, args);
+
+        var psi = new ProcessStartInfo("git", args)
+        {
+            WorkingDirectory       = repoPath,
+            RedirectStandardOutput = true,
+            RedirectStandardError  = true,
+            UseShellExecute        = false,
+            CreateNoWindow         = true,
+        };
+
+        using var p = Process.Start(psi)
+            ?? throw new InvalidOperationException("Failed to start git process.");
+
+        var output = await p.StandardOutput.ReadToEndAsync(ct);
+        await p.WaitForExitAsync(ct);
+        return output;
     }
 
     private async Task RunGitAsync(string repoPath, string args, CancellationToken ct, bool throwOnError = true) =>

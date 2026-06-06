@@ -158,9 +158,14 @@ function ErrorCard({ task, column, onRetry, onClick }: { task: WorkTask; column:
 
 function DoneCard({ task, onClick }: { task: WorkTask; onClick: (id: string) => void }) {
   return (
-    <div className="px-3 py-2 flex items-center gap-2" onClick={() => onClick(task.id)}>
-      <p className="text-sm text-zinc-500 flex-1 truncate">{task.title}</p>
-      <CheckIcon />
+    <div className="px-3 py-2" onClick={() => onClick(task.id)}>
+      <div className="flex items-center gap-2">
+        <p className="text-sm text-zinc-500 flex-1 truncate">{task.title}</p>
+        <CheckIcon />
+      </div>
+      {task.branchName && (
+        <p className="text-[11px] font-mono text-zinc-600 dark:text-zinc-500 truncate mt-0.5">{task.branchName}</p>
+      )}
     </div>
   );
 }
